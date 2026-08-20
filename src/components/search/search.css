@@ -5,9 +5,9 @@
   align-items: center;
   gap: var(--space-2);
   width: 100%;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-4);
   border: var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-pill);
   background: var(--surface);
   color: var(--ink-3);
   text-align: left;
@@ -30,9 +30,9 @@
 
 .search-launcher__kbd {
   flex-shrink: 0;
-  padding: 0 5px;
+  padding: 0 6px;
   border: 1px solid var(--line);
-  border-radius: 3px;
+  border-radius: var(--radius-pill);
   font-size: var(--text-2xs);
   color: var(--ink-3);
   background: var(--bg-alt);
@@ -100,7 +100,7 @@
   max-height: min(34rem, 84vh);
   display: flex;
   flex-direction: column;
-  background: var(--surface);
+  background: var(--surface-raised);
   border: var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
@@ -239,6 +239,6 @@
 .search-mark {
   background: var(--accent-soft);
   color: var(--accent-ink);
-  border-radius: 2px;
-  padding: 0 1px;
+  border-radius: var(--radius-sm);
+  padding: 0 2px;
 }

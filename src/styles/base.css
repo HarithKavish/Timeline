@@ -10,12 +10,16 @@ html {
 
 body {
   margin: 0;
-  background: var(--bg);
+  min-height: 100vh;
+  /* The house ground: a soft wash at the top over the flat background. */
+  background:
+    radial-gradient(circle at top, var(--bg-alt), transparent 42%),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--ink);
   font-family: var(--font-sans);
   font-size: var(--text-base);
-  line-height: 1.55;
-  font-feature-settings: 'cv05' 1, 'ss01' 1;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -44,9 +48,9 @@ h1,
 h2,
 h3,
 h4 {
-  font-weight: 500;
+  font-weight: var(--weight-display);
   line-height: 1.2;
-  letter-spacing: -0.012em;
+  letter-spacing: var(--tracking-display);
 }
 
 a {
@@ -89,6 +93,11 @@ img {
   color: var(--accent-ink);
 }
 
+kbd {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+}
+
 /* Scrollbars, dark-mode aware */
 * {
   scrollbar-color: var(--line-2) transparent;
@@ -112,8 +121,8 @@ img {
 
 .display {
   font-family: var(--font-display);
-  font-weight: 400;
-  letter-spacing: -0.02em;
+  font-weight: var(--weight-display);
+  letter-spacing: var(--tracking-display);
 }
 
 .mono {
@@ -123,10 +132,10 @@ img {
 }
 
 .eyebrow {
-  font-family: var(--font-mono);
   font-size: var(--text-2xs);
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: var(--tracking-eyebrow);
   color: var(--ink-3);
 }
 

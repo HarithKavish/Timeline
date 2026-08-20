@@ -121,12 +121,29 @@ so a shared link and an API call already agree.
 
 ### Design
 
-A distinct, archival identity rather than a streaming or SaaS look: warm paper in light mode
-and cool graphite in dark, a serif display face for titles, a mono face reserved almost
-entirely for dates and counts, one oxide accent, hairline rules instead of card shadows.
+Timeline wears the **Harith Kavish house theme**, so it reads as a sibling of
+[harithkavish.com](https://harithkavish.com) and [Nexus](https://nexus.harithkavish.com)
+rather than as a separate product. The canonical stylesheet those sites share is
+`https://harithkavish.com/style.css`; `src/styles/tokens.css` mirrors its values:
 
-- Light and dark are both authored (`src/styles/tokens.css`), with a three-state theme control
-  (system / light / dark) and a pre-paint script so the palette never flashes.
+- **Palette** — cool blue-grey ground (`#f4f9fb` light, `#0b1014` dark) with the house radial
+  wash, deep-teal accent `#123f50` inverting to pale ice `#cedfe6` in dark, and the house
+  status colours (live green, in-progress amber) carrying Timeline's certainty states.
+- **Type** — the house system stack, `Aptos, "Segoe UI", "Helvetica Neue", Arial`. No
+  webfonts are loaded, matching the house sites. Headings run heavy and tight (weight 650,
+  `-0.03em`; the hero at `-0.05em`). A mono face is kept for dates and counts only, because
+  tabular figures are what hold the chronology in column.
+- **Geometry** — house radii: soft `12–16px` cards with low-opacity shadows, and fully-round
+  pills for chips, buttons, filter tags and the search field, matching the house `.pill`.
+- **Surfaces** — translucent panels over the ground, with a blurred sticky header and footer.
+
+Only the theme layer is house-branded. Spacing, type scale, layout widths and every grid are
+untouched, so the chronology keeps its alignment and density.
+
+- Light and dark are both authored, using the same `[data-theme]` mechanism as the house
+  sites, with a three-state control (system / light / dark) and a pre-paint script so the
+  palette never flashes.
+
 - Mobile is designed, not shrunk: filters become a bottom sheet, timeline rows restack, the
   year-density strip rescales to the viewport.
 - The year-density chart is the range selector — click a year, shift-click a second for a

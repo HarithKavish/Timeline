@@ -28,11 +28,7 @@ export function HomePage() {
     <div className="page">
       <section className="hero">
         <div>
-          <h1 className="hero__title display">
-            Everything, in the order
-            <br />
-            it happened.
-          </h1>
+          <h1 className="hero__title display">Everything, in the order it happened.</h1>
           <p className="hero__lede">
             Timeline is a catalogue of creative works arranged by when they appeared — and a
             record of where every date, credit and claim came from.

@@ -1,63 +1,78 @@
 /*
- * Timeline design tokens.
+ * Timeline design tokens — Harith Kavish house theme.
  *
- * The identity is archival rather than editorial: warm paper in light mode, a
- * cool graphite in dark, one oxide accent, and a mono face reserved almost
- * entirely for dates. Chronology is the loudest thing on the page; nothing else
- * competes with it.
+ * Aligned to the palette and type of harithkavish.com and nexus.harithkavish.com
+ * (the canonical stylesheet is https://harithkavish.com/style.css, which Nexus
+ * loads directly). Timeline is a sibling product in that family, so it wears the
+ * same colours, the same system type stack and the same pill-shaped controls.
+ *
+ * Only the *theme* layer is house-branded. Spacing, type scale, layout widths
+ * and every grid in the app are unchanged — the chronology keeps its alignment.
  *
  * Light values live on bare :root. Dark values are declared twice — once under
  * prefers-color-scheme for the OS setting, once under [data-theme="dark"] for
- * the in-app toggle — so the toggle wins in both directions.
+ * the in-app toggle — so the toggle wins in both directions. The house sites use
+ * the same [data-theme] mechanism.
  */
 
 :root {
   color-scheme: light;
 
-  /* Surfaces */
-  --bg: #faf8f4;
-  --bg-alt: #f2efe8;
-  --surface: #ffffff;
-  --surface-2: #f6f4ef;
+  /* Surfaces — house tokens: --bg, --bg-accent, --surface, --surface-soft */
+  --bg: #f4f9fb;
+  --bg-alt: #e4eef2;
+  --surface: rgba(255, 255, 255, 0.86);
+  --surface-2: rgba(255, 255, 255, 0.58);
   --surface-raised: #ffffff;
-  --overlay: rgba(24, 22, 18, 0.38);
+  --overlay: rgba(11, 16, 20, 0.38);
+  --header-bg: rgba(244, 249, 251, 0.84);
+  --footer-bg: rgba(244, 249, 251, 0.88);
 
-  /* Ink */
-  --ink: #1a1916;
-  --ink-2: #55514a;
-  --ink-3: #837d72;
-  --ink-inverse: #faf8f4;
+  /* Ink — house --text / --muted, plus a tertiary step for dense metadata */
+  --ink: #182028;
+  --ink-2: #5a646d;
+  --ink-3: #6e7880;
+  --ink-inverse: #f4f9fb;
 
-  /* Lines */
-  --line: #e4dfd4;
-  --line-2: #d2ccbe;
-  --line-strong: #b8b1a1;
+  /* Lines — house --border, plus two firmer steps for controls */
+  --line: rgba(24, 32, 40, 0.11);
+  --line-2: rgba(24, 32, 40, 0.18);
+  --line-strong: rgba(24, 32, 40, 0.3);
 
-  /* Accent — oxide */
-  --accent: #b1462a;
-  --accent-ink: #8f3821;
-  --accent-soft: #f5e6df;
-  --accent-line: #e3c5b8;
+  /* Accent — house deep teal */
+  --accent: #123f50;
+  --accent-ink: #081f29;
+  --accent-soft: rgba(18, 63, 80, 0.08);
+  --accent-line: rgba(18, 63, 80, 0.22);
+  /* Text/icon colour on an accent-filled surface. */
+  --accent-contrast: #ffffff;
 
-  /* Supporting hues, used only for classification chips */
-  --chip-film: #3c5a6e;
-  --chip-film-bg: #e7eef3;
-  --chip-independent: #4a6146;
-  --chip-independent-bg: #e8efe6;
-  --chip-neutral-bg: #eeebe4;
+  /* Classification chips, kept inside the house palette */
+  --chip-film: #123f50;
+  --chip-film-bg: rgba(18, 63, 80, 0.08);
+  --chip-independent: #267f57;
+  --chip-independent-bg: rgba(38, 127, 87, 0.1);
+  --chip-neutral-bg: rgba(24, 32, 40, 0.06);
 
-  /* Certainty */
-  --certainty-known: #3f6144;
-  --certainty-known-bg: #e7efe7;
-  --certainty-reported: #7a5a1f;
-  --certainty-reported-bg: #f6eddb;
-  --certainty-unknown: #6d6a63;
-  --certainty-unknown-bg: #eeebe4;
+  /* Certainty — house status colours (live green, in-progress amber) */
+  --certainty-known: #267f57;
+  --certainty-known-bg: rgba(38, 127, 87, 0.1);
+  --certainty-reported: #8b6a31;
+  --certainty-reported-bg: rgba(124, 92, 47, 0.09);
+  --certainty-unknown: #5a646d;
+  --certainty-unknown-bg: rgba(24, 32, 40, 0.06);
 
-  /* Typography */
-  --font-display: 'Newsreader', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+  /* Typography — the house stack, no webfonts. Mono is kept for dates and
+     counts only: tabular figures are what holds the chronology in column. */
+  --font-sans: 'Aptos', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Aptos', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Cascadia Mono', 'Cascadia Code', ui-monospace, SFMono-Regular,
+    'SF Mono', Consolas, monospace;
+  /* House headings run heavy and tight. */
+  --weight-display: 650;
+  --tracking-display: -0.03em;
+  --tracking-hero: -0.05em;
+  --tracking-eyebrow: 0.18em;
 
   --text-2xs: 0.6875rem;
   --text-xs: 0.75rem;
@@ -70,7 +85,7 @@
   --text-3xl: 2.25rem;
   --text-4xl: 3rem;
 
-  /* Space */
+  /* Space — unchanged; this is the alignment layer, not the theme layer. */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -80,106 +95,116 @@
   --space-7: 3rem;
   --space-8: 4rem;
 
-  /* Geometry — deliberately restrained; this is a catalogue, not a card deck */
-  --radius-sm: 3px;
-  --radius: 4px;
-  --radius-lg: 6px;
+  /* Geometry — house radii: soft cards, fully-round pills */
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
   --border: 1px solid var(--line);
 
-  --shadow-sm: 0 1px 2px rgba(26, 25, 22, 0.06);
-  --shadow-md: 0 8px 24px -12px rgba(26, 25, 22, 0.28);
-  --shadow-lg: 0 24px 60px -24px rgba(26, 25, 22, 0.4);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 12px 30px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 16px 36px rgba(15, 23, 42, 0.08);
+
+  --blur: blur(16px);
 
   --header-height: 3.5rem;
   --content-max: 78rem;
   --reading-max: 46rem;
 
-  --ease: cubic-bezier(0.2, 0, 0.1, 1);
-  --duration: 160ms;
+  --ease: ease;
+  --duration: 200ms;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
 
-    --bg: #0f1012;
-    --bg-alt: #141619;
-    --surface: #16181b;
-    --surface-2: #1b1e22;
-    --surface-raised: #1c1f23;
-    --overlay: rgba(6, 7, 8, 0.66);
+    --bg: #0b1014;
+    --bg-alt: #11181d;
+    --surface: rgba(17, 24, 29, 0.86);
+    --surface-2: rgba(24, 33, 39, 0.72);
+    --surface-raised: #121a1f;
+    --overlay: rgba(4, 7, 9, 0.66);
+    --header-bg: rgba(11, 16, 20, 0.86);
+    --footer-bg: rgba(11, 16, 20, 0.92);
 
-    --ink: #f0eee9;
-    --ink-2: #b0aca3;
-    --ink-3: #837e75;
-    --ink-inverse: #14151a;
+    --ink: #eef2f4;
+    --ink-2: #a4afb6;
+    --ink-3: #7c868d;
+    --ink-inverse: #0b1014;
 
-    --line: #262a2f;
-    --line-2: #333840;
-    --line-strong: #454b54;
+    --line: rgba(255, 255, 255, 0.11);
+    --line-2: rgba(255, 255, 255, 0.18);
+    --line-strong: rgba(255, 255, 255, 0.3);
 
-    --accent: #e07b5d;
-    --accent-ink: #ef9077;
-    --accent-soft: #2b1c17;
-    --accent-line: #4a2e24;
+    /* In dark the house accent inverts to a pale ice tone. */
+    --accent: #cedfe6;
+    --accent-ink: #f3f8fa;
+    --accent-soft: rgba(206, 223, 230, 0.08);
+    --accent-line: rgba(206, 223, 230, 0.22);
+    --accent-contrast: #0b1014;
 
-    --chip-film: #9dc0d8;
-    --chip-film-bg: #1a2530;
-    --chip-independent: #a6c69f;
-    --chip-independent-bg: #1a241a;
-    --chip-neutral-bg: #212429;
+    --chip-film: #cedfe6;
+    --chip-film-bg: rgba(206, 223, 230, 0.08);
+    --chip-independent: #92d3b0;
+    --chip-independent-bg: rgba(38, 127, 87, 0.16);
+    --chip-neutral-bg: rgba(255, 255, 255, 0.06);
 
-    --certainty-known: #9dc4a2;
-    --certainty-known-bg: #182219;
-    --certainty-reported: #d9b877;
-    --certainty-reported-bg: #262015;
-    --certainty-unknown: #9a958c;
-    --certainty-unknown-bg: #212429;
+    --certainty-known: #92d3b0;
+    --certainty-known-bg: rgba(38, 127, 87, 0.16);
+    --certainty-reported: #d9be8a;
+    --certainty-reported-bg: rgba(124, 92, 47, 0.18);
+    --certainty-unknown: #a4afb6;
+    --certainty-unknown-bg: rgba(255, 255, 255, 0.06);
 
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 8px 24px -12px rgba(0, 0, 0, 0.7);
-    --shadow-lg: 0 24px 60px -24px rgba(0, 0, 0, 0.8);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.22);
+    --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.28);
   }
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --bg: #0f1012;
-  --bg-alt: #141619;
-  --surface: #16181b;
-  --surface-2: #1b1e22;
-  --surface-raised: #1c1f23;
-  --overlay: rgba(6, 7, 8, 0.66);
+  --bg: #0b1014;
+  --bg-alt: #11181d;
+  --surface: rgba(17, 24, 29, 0.86);
+  --surface-2: rgba(24, 33, 39, 0.72);
+  --surface-raised: #121a1f;
+  --overlay: rgba(4, 7, 9, 0.66);
+  --header-bg: rgba(11, 16, 20, 0.86);
+  --footer-bg: rgba(11, 16, 20, 0.92);
 
-  --ink: #f0eee9;
-  --ink-2: #b0aca3;
-  --ink-3: #837e75;
-  --ink-inverse: #14151a;
+  --ink: #eef2f4;
+  --ink-2: #a4afb6;
+  --ink-3: #7c868d;
+  --ink-inverse: #0b1014;
 
-  --line: #262a2f;
-  --line-2: #333840;
-  --line-strong: #454b54;
+  --line: rgba(255, 255, 255, 0.11);
+  --line-2: rgba(255, 255, 255, 0.18);
+  --line-strong: rgba(255, 255, 255, 0.3);
 
-  --accent: #e07b5d;
-  --accent-ink: #ef9077;
-  --accent-soft: #2b1c17;
-  --accent-line: #4a2e24;
+  --accent: #cedfe6;
+  --accent-ink: #f3f8fa;
+  --accent-soft: rgba(206, 223, 230, 0.08);
+  --accent-line: rgba(206, 223, 230, 0.22);
+  --accent-contrast: #0b1014;
 
-  --chip-film: #9dc0d8;
-  --chip-film-bg: #1a2530;
-  --chip-independent: #a6c69f;
-  --chip-independent-bg: #1a241a;
-  --chip-neutral-bg: #212429;
+  --chip-film: #cedfe6;
+  --chip-film-bg: rgba(206, 223, 230, 0.08);
+  --chip-independent: #92d3b0;
+  --chip-independent-bg: rgba(38, 127, 87, 0.16);
+  --chip-neutral-bg: rgba(255, 255, 255, 0.06);
 
-  --certainty-known: #9dc4a2;
-  --certainty-known-bg: #182219;
-  --certainty-reported: #d9b877;
-  --certainty-reported-bg: #262015;
-  --certainty-unknown: #9a958c;
-  --certainty-unknown-bg: #212429;
+  --certainty-known: #92d3b0;
+  --certainty-known-bg: rgba(38, 127, 87, 0.16);
+  --certainty-reported: #d9be8a;
+  --certainty-reported-bg: rgba(124, 92, 47, 0.18);
+  --certainty-unknown: #a4afb6;
+  --certainty-unknown-bg: rgba(255, 255, 255, 0.06);
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 8px 24px -12px rgba(0, 0, 0, 0.7);
-  --shadow-lg: 0 24px 60px -24px rgba(0, 0, 0, 0.8);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.22);
+  --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.28);
 }

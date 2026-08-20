@@ -3,10 +3,10 @@
 .certainty {
   display: inline-flex;
   align-items: center;
-  padding: 0 6px;
-  border-radius: 2px;
-  font-family: var(--font-mono);
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
   font-size: var(--text-2xs);
+  font-weight: 650;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -38,9 +38,9 @@
 .source-ref {
   display: inline-flex;
   align-items: center;
-  padding: 0 4px;
+  padding: 0 6px;
   border: 1px solid var(--line-2);
-  border-radius: 2px;
+  border-radius: var(--radius-pill);
   font-size: var(--text-2xs);
   color: var(--ink-3);
   transition: border-color var(--duration) var(--ease), color var(--duration) var(--ease);
@@ -118,8 +118,9 @@
 
 .source-card {
   border: var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   background: var(--surface);
+  box-shadow: var(--shadow-sm);
   padding: var(--space-3) var(--space-4);
   scroll-margin-top: 5rem;
 }
@@ -194,7 +195,7 @@
 .confidence__step {
   width: 14px;
   height: 4px;
-  border-radius: 1px;
+  border-radius: var(--radius-pill);
   background: var(--line-2);
 }
 
