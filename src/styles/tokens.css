@@ -1,0 +1,185 @@
+/*
+ * Timeline design tokens.
+ *
+ * The identity is archival rather than editorial: warm paper in light mode, a
+ * cool graphite in dark, one oxide accent, and a mono face reserved almost
+ * entirely for dates. Chronology is the loudest thing on the page; nothing else
+ * competes with it.
+ *
+ * Light values live on bare :root. Dark values are declared twice — once under
+ * prefers-color-scheme for the OS setting, once under [data-theme="dark"] for
+ * the in-app toggle — so the toggle wins in both directions.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --bg: #faf8f4;
+  --bg-alt: #f2efe8;
+  --surface: #ffffff;
+  --surface-2: #f6f4ef;
+  --surface-raised: #ffffff;
+  --overlay: rgba(24, 22, 18, 0.38);
+
+  /* Ink */
+  --ink: #1a1916;
+  --ink-2: #55514a;
+  --ink-3: #837d72;
+  --ink-inverse: #faf8f4;
+
+  /* Lines */
+  --line: #e4dfd4;
+  --line-2: #d2ccbe;
+  --line-strong: #b8b1a1;
+
+  /* Accent — oxide */
+  --accent: #b1462a;
+  --accent-ink: #8f3821;
+  --accent-soft: #f5e6df;
+  --accent-line: #e3c5b8;
+
+  /* Supporting hues, used only for classification chips */
+  --chip-film: #3c5a6e;
+  --chip-film-bg: #e7eef3;
+  --chip-independent: #4a6146;
+  --chip-independent-bg: #e8efe6;
+  --chip-neutral-bg: #eeebe4;
+
+  /* Certainty */
+  --certainty-known: #3f6144;
+  --certainty-known-bg: #e7efe7;
+  --certainty-reported: #7a5a1f;
+  --certainty-reported-bg: #f6eddb;
+  --certainty-unknown: #6d6a63;
+  --certainty-unknown-bg: #eeebe4;
+
+  /* Typography */
+  --font-display: 'Newsreader', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+  --text-4xl: 3rem;
+
+  /* Space */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  /* Geometry — deliberately restrained; this is a catalogue, not a card deck */
+  --radius-sm: 3px;
+  --radius: 4px;
+  --radius-lg: 6px;
+  --border: 1px solid var(--line);
+
+  --shadow-sm: 0 1px 2px rgba(26, 25, 22, 0.06);
+  --shadow-md: 0 8px 24px -12px rgba(26, 25, 22, 0.28);
+  --shadow-lg: 0 24px 60px -24px rgba(26, 25, 22, 0.4);
+
+  --header-height: 3.5rem;
+  --content-max: 78rem;
+  --reading-max: 46rem;
+
+  --ease: cubic-bezier(0.2, 0, 0.1, 1);
+  --duration: 160ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --bg: #0f1012;
+    --bg-alt: #141619;
+    --surface: #16181b;
+    --surface-2: #1b1e22;
+    --surface-raised: #1c1f23;
+    --overlay: rgba(6, 7, 8, 0.66);
+
+    --ink: #f0eee9;
+    --ink-2: #b0aca3;
+    --ink-3: #837e75;
+    --ink-inverse: #14151a;
+
+    --line: #262a2f;
+    --line-2: #333840;
+    --line-strong: #454b54;
+
+    --accent: #e07b5d;
+    --accent-ink: #ef9077;
+    --accent-soft: #2b1c17;
+    --accent-line: #4a2e24;
+
+    --chip-film: #9dc0d8;
+    --chip-film-bg: #1a2530;
+    --chip-independent: #a6c69f;
+    --chip-independent-bg: #1a241a;
+    --chip-neutral-bg: #212429;
+
+    --certainty-known: #9dc4a2;
+    --certainty-known-bg: #182219;
+    --certainty-reported: #d9b877;
+    --certainty-reported-bg: #262015;
+    --certainty-unknown: #9a958c;
+    --certainty-unknown-bg: #212429;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 8px 24px -12px rgba(0, 0, 0, 0.7);
+    --shadow-lg: 0 24px 60px -24px rgba(0, 0, 0, 0.8);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0f1012;
+  --bg-alt: #141619;
+  --surface: #16181b;
+  --surface-2: #1b1e22;
+  --surface-raised: #1c1f23;
+  --overlay: rgba(6, 7, 8, 0.66);
+
+  --ink: #f0eee9;
+  --ink-2: #b0aca3;
+  --ink-3: #837e75;
+  --ink-inverse: #14151a;
+
+  --line: #262a2f;
+  --line-2: #333840;
+  --line-strong: #454b54;
+
+  --accent: #e07b5d;
+  --accent-ink: #ef9077;
+  --accent-soft: #2b1c17;
+  --accent-line: #4a2e24;
+
+  --chip-film: #9dc0d8;
+  --chip-film-bg: #1a2530;
+  --chip-independent: #a6c69f;
+  --chip-independent-bg: #1a241a;
+  --chip-neutral-bg: #212429;
+
+  --certainty-known: #9dc4a2;
+  --certainty-known-bg: #182219;
+  --certainty-reported: #d9b877;
+  --certainty-reported-bg: #262015;
+  --certainty-unknown: #9a958c;
+  --certainty-unknown-bg: #212429;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px -12px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 24px 60px -24px rgba(0, 0, 0, 0.8);
+}

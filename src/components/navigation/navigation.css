@@ -1,0 +1,213 @@
+/* ---- Header -------------------------------------------------------------- */
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+
+.app-header__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: var(--header-height);
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+@media (min-width: 48rem) {
+  .app-header__inner {
+    padding: 0 var(--space-6);
+    gap: var(--space-5);
+  }
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--ink);
+  flex-shrink: 0;
+}
+
+.brand__word {
+  font-size: var(--text-lg);
+  letter-spacing: -0.01em;
+}
+
+.brand:hover {
+  color: var(--accent-ink);
+}
+
+.app-nav {
+  display: none;
+  min-width: 0;
+}
+
+@media (min-width: 60rem) {
+  .app-nav {
+    display: block;
+  }
+}
+
+.app-nav ul {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.app-nav__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  transition: color var(--duration) var(--ease), background var(--duration) var(--ease);
+}
+
+.app-nav__link:hover {
+  color: var(--ink);
+  background: var(--surface-2);
+}
+
+.app-nav__link--active {
+  color: var(--ink);
+  background: var(--surface-2);
+}
+
+.app-nav__link--planned {
+  color: var(--ink-3);
+}
+
+.app-nav__soon {
+  color: var(--accent);
+  font-size: var(--text-lg);
+  line-height: 0;
+}
+
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink-2);
+  transition: color var(--duration) var(--ease), border-color var(--duration) var(--ease);
+}
+
+.icon-button:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+/* ---- Section nav --------------------------------------------------------- */
+
+.section-nav {
+  border-bottom: 1px solid var(--line);
+  margin-bottom: var(--space-5);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.section-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.section-nav ul {
+  display: flex;
+  gap: var(--space-4);
+  min-width: max-content;
+}
+
+.section-nav__link {
+  display: block;
+  padding: var(--space-2) 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  font-size: var(--text-sm);
+  color: var(--ink-3);
+  white-space: nowrap;
+  transition: color var(--duration) var(--ease), border-color var(--duration) var(--ease);
+}
+
+.section-nav__link:hover {
+  color: var(--ink);
+}
+
+.section-nav__link--active {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+
+/* ---- Footer -------------------------------------------------------------- */
+
+.app-footer {
+  margin-top: var(--space-8);
+  border-top: 1px solid var(--line);
+  background: var(--bg-alt);
+}
+
+.app-footer__inner {
+  display: grid;
+  gap: var(--space-5);
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+}
+
+@media (min-width: 48rem) {
+  .app-footer__inner {
+    grid-template-columns: 1.6fr 1fr 1fr 1.4fr;
+    gap: var(--space-6);
+    padding: var(--space-7) var(--space-6);
+  }
+}
+
+.brand--footer {
+  margin-bottom: var(--space-2);
+}
+
+.app-footer__blurb {
+  font-size: var(--text-sm);
+  max-width: 42ch;
+}
+
+.app-footer__stage {
+  margin-top: var(--space-3);
+  font-size: var(--text-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+}
+
+.app-footer__heading {
+  margin-bottom: var(--space-2);
+}
+
+.app-footer__nav ul {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+}
+
+.app-footer__note {
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  max-width: 40ch;
+}

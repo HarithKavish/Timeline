@@ -1,0 +1,328 @@
+/* ---- Timeline list ---------------------------------------------------- */
+
+.timeline {
+  margin-top: var(--space-4);
+}
+
+.timeline__decade {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-6) 0 var(--space-3);
+}
+
+.timeline__decade-label {
+  font-size: var(--text-2xl);
+  color: var(--line-strong);
+  letter-spacing: -0.03em;
+}
+
+.timeline__decade-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.timeline__group {
+  display: block;
+}
+
+.timeline__year {
+  position: sticky;
+  top: var(--header-height);
+  z-index: 2;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  background: linear-gradient(var(--bg) 70%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.timeline__year-label {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--text-md);
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: 0;
+}
+
+.timeline__year-count {
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 0 4px;
+}
+
+.timeline__year-note {
+  font-size: var(--text-xs);
+  max-width: 40ch;
+}
+
+.timeline__items {
+  display: grid;
+}
+
+.timeline__terminus {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+  padding-left: 0;
+  font-size: var(--text-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-3);
+}
+
+.timeline__terminus::before {
+  content: '';
+  width: 5.5rem;
+  height: 1px;
+  background: var(--line);
+}
+
+/* ---- Row -------------------------------------------------------------- */
+
+.tl-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.tl-row:hover {
+  background: var(--surface-2);
+}
+
+.tl-row__date {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.tl-row__date-main {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.tl-row__precision {
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.tl-row__spine {
+  display: none;
+}
+
+.tl-row__title {
+  font-size: var(--text-md);
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.tl-row__link {
+  font-size: var(--text-lg);
+  color: var(--ink);
+  text-decoration: none;
+  background-image: linear-gradient(var(--accent-line), var(--accent-line));
+  background-size: 0% 1px;
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  transition: background-size var(--duration) var(--ease), color var(--duration) var(--ease);
+}
+
+.tl-row__link:hover {
+  color: var(--accent-ink);
+  background-size: 100% 1px;
+}
+
+.tl-row__version {
+  font-size: var(--text-sm);
+}
+
+.tl-row__reappearance {
+  margin-left: var(--space-2);
+  padding: 0 5px;
+  border: 1px dashed var(--line-2);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.tl-row__native {
+  font-size: var(--text-sm);
+  line-height: 1.4;
+}
+
+.tl-row__credits {
+  font-size: var(--text-sm);
+  margin-top: 2px;
+}
+
+.tl-row__release {
+  font-size: var(--text-sm);
+}
+
+.tl-row__film {
+  color: var(--ink-2);
+}
+
+.tl-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.tl-row__duration {
+  font-size: var(--text-2xs);
+  color: var(--ink-3);
+}
+
+@media (min-width: 40rem) {
+  .tl-row {
+    grid-template-columns: 5.5rem 1rem 1fr;
+    padding: var(--space-4) 0;
+  }
+
+  .tl-row__date {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    padding-top: 3px;
+  }
+
+  .tl-row__spine {
+    display: block;
+    position: relative;
+    justify-self: center;
+    width: 1px;
+    background: var(--line);
+    margin: -1rem 0;
+  }
+
+  .tl-row__node {
+    position: absolute;
+    top: 1.35rem;
+    left: 50%;
+    width: 7px;
+    height: 7px;
+    margin-left: -3.5px;
+    border-radius: 50%;
+    background: var(--ink-3);
+    box-shadow: 0 0 0 3px var(--bg);
+    transition: background var(--duration) var(--ease);
+  }
+
+  .tl-row:hover .tl-row__node {
+    background: var(--accent);
+    box-shadow: 0 0 0 3px var(--surface-2);
+  }
+
+  .tl-row__node--undated {
+    background: transparent;
+    border: 1px dashed var(--line-strong);
+  }
+}
+
+/* ---- Density chart ---------------------------------------------------- */
+
+.density {
+  margin: 0;
+  padding: var(--space-3) 0 var(--space-2);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.density__caption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.density__readout {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.density__plot {
+  width: 100%;
+  overflow: hidden;
+}
+
+.density__axis {
+  stroke: var(--line-2);
+  stroke-width: 1;
+}
+
+.density__bar {
+  fill: var(--ink-3);
+  transition: fill var(--duration) var(--ease), opacity var(--duration) var(--ease);
+}
+
+.density__bar--active {
+  fill: var(--accent);
+}
+
+.density__bar--dimmed {
+  opacity: 0.35;
+}
+
+.density__empty {
+  fill: var(--line-2);
+}
+
+.density__hit {
+  fill: transparent;
+  cursor: pointer;
+}
+
+.density__hit:hover + .density__bar,
+.density__plot g:hover .density__bar {
+  fill: var(--accent);
+  opacity: 1;
+}
+
+.density__tick {
+  fill: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+.density__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
+}
+
+.density__hint {
+  font-size: var(--text-2xs);
+}
+
+.density__clear {
+  font-size: var(--text-2xs);
+  color: var(--accent-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+@media (max-width: 40rem) {
+  .density__hint {
+    display: none;
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "timeline",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Timeline — a source-backed chronological catalogue of creative works and their creators.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build && node scripts/postbuild.mjs",
+    "preview": "vite preview --port 4173",
+    "typecheck": "tsc -b",
+    "validate:data": "esbuild scripts/validate.ts --bundle --format=esm --platform=node --outfile=node_modules/.cache/timeline-validate.mjs --log-level=error && node node_modules/.cache/timeline-validate.mjs"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.4.0",
+    "esbuild": "^0.28.2",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.0"
+  }
+}
