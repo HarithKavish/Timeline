@@ -19,14 +19,9 @@
   color-scheme: light;
 
   /* Surfaces — house tokens: --bg, --bg-accent, --surface, --surface-soft */
-  --bg: #f4f9fb;
   --bg-alt: #e4eef2;
-  --surface: rgba(255, 255, 255, 0.86);
   --surface-2: rgba(255, 255, 255, 0.58);
-  --surface-raised: #ffffff;
   --overlay: rgba(11, 16, 20, 0.38);
-  --header-bg: rgba(244, 249, 251, 0.84);
-  --footer-bg: rgba(244, 249, 251, 0.88);
 
   /* Ink — house --text / --muted, plus a tertiary step for dense metadata */
   --ink: #182028;
@@ -40,7 +35,6 @@
   --line-strong: rgba(24, 32, 40, 0.3);
 
   /* Accent — house deep teal */
-  --accent: #123f50;
   --accent-ink: #081f29;
   --accent-soft: rgba(18, 63, 80, 0.08);
   --accent-line: rgba(18, 63, 80, 0.22);
@@ -64,15 +58,11 @@
 
   /* Typography — the house stack, no webfonts. Mono is kept for dates and
      counts only: tabular figures are what holds the chronology in column. */
-  --font-sans: 'Aptos', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-  --font-display: 'Aptos', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'Cascadia Mono', 'Cascadia Code', ui-monospace, SFMono-Regular,
     'SF Mono', Consolas, monospace;
   /* House headings run heavy and tight. */
   --weight-display: 650;
   --tracking-display: -0.03em;
-  --tracking-hero: -0.05em;
-  --tracking-eyebrow: 0.18em;
 
   --text-2xs: 0.6875rem;
   --text-xs: 0.75rem;
@@ -99,12 +89,9 @@
   --radius-sm: 8px;
   --radius: 12px;
   --radius-lg: 16px;
-  --radius-pill: 999px;
-  --border: 1px solid var(--line);
+  --border-rule: 1px solid var(--line);
 
   --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 12px 30px rgba(15, 23, 42, 0.05);
-  --shadow-lg: 0 16px 36px rgba(15, 23, 42, 0.08);
 
   --blur: blur(16px);
 
@@ -120,14 +107,9 @@
   :root:not([data-theme='light']) {
     color-scheme: dark;
 
-    --bg: #0b1014;
     --bg-alt: #11181d;
-    --surface: rgba(17, 24, 29, 0.86);
     --surface-2: rgba(24, 33, 39, 0.72);
-    --surface-raised: #121a1f;
     --overlay: rgba(4, 7, 9, 0.66);
-    --header-bg: rgba(11, 16, 20, 0.86);
-    --footer-bg: rgba(11, 16, 20, 0.92);
 
     --ink: #eef2f4;
     --ink-2: #a4afb6;
@@ -139,7 +121,6 @@
     --line-strong: rgba(255, 255, 255, 0.3);
 
     /* In dark the house accent inverts to a pale ice tone. */
-    --accent: #cedfe6;
     --accent-ink: #f3f8fa;
     --accent-soft: rgba(206, 223, 230, 0.08);
     --accent-line: rgba(206, 223, 230, 0.22);
@@ -159,22 +140,15 @@
     --certainty-unknown-bg: rgba(255, 255, 255, 0.06);
 
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
-    --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.22);
-    --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.28);
   }
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --bg: #0b1014;
   --bg-alt: #11181d;
-  --surface: rgba(17, 24, 29, 0.86);
   --surface-2: rgba(24, 33, 39, 0.72);
-  --surface-raised: #121a1f;
   --overlay: rgba(4, 7, 9, 0.66);
-  --header-bg: rgba(11, 16, 20, 0.86);
-  --footer-bg: rgba(11, 16, 20, 0.92);
 
   --ink: #eef2f4;
   --ink-2: #a4afb6;
@@ -185,7 +159,6 @@
   --line-2: rgba(255, 255, 255, 0.18);
   --line-strong: rgba(255, 255, 255, 0.3);
 
-  --accent: #cedfe6;
   --accent-ink: #f3f8fa;
   --accent-soft: rgba(206, 223, 230, 0.08);
   --accent-line: rgba(206, 223, 230, 0.22);
@@ -205,6 +178,4 @@
   --certainty-unknown-bg: rgba(255, 255, 255, 0.06);
 
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.22);
-  --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.28);
 }

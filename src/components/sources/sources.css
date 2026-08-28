@@ -117,7 +117,7 @@
 }
 
 .source-card {
-  border: var(--border);
+  border: var(--border-rule);
   border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow-sm);
