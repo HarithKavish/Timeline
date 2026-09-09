@@ -15,7 +15,8 @@ export type Domain =
   | 'games'
   | 'books'
   | 'software'
-  | 'technology';
+  | 'technology'
+  | 'news';
 
 export type DomainStatus = 'available' | 'planned';
 

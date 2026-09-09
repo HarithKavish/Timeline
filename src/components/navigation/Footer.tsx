@@ -17,7 +17,7 @@ export function Footer() {
             them. What, who, when, how it relates, and where each fact came from.
           </p>
           <p className="app-footer__stage mono">
-            Stage 1 · frontend only · demonstration dataset
+            Stage 1 · Music is demonstration data · News is a live pipeline
           </p>
         </div>
 
@@ -66,10 +66,14 @@ export function Footer() {
         <div className="app-footer__nav">
           <h2 className="app-footer__heading eyebrow">About the data</h2>
           <p className="app-footer__note subtle">
-            Every source record in this build is a placeholder. Locators use the
+            Music's source records in this build are placeholders. Locators use the
             <span className="mono"> timeline-demo:// </span>
-            scheme so they can never be mistaken for citations. Ingestion, reconciliation and
-            fact-level provenance arrive with the backend stage.
+            scheme so they can never be mistaken for citations. News is the exception: it is
+            live-ingested and every article links to the real source — see{' '}
+            <Link className="link" to="/news">
+              News
+            </Link>
+            .
           </p>
         </div>
       </div>

@@ -14,6 +14,13 @@ export const domains: DomainDescriptor[] = [
     path: '/music',
   },
   {
+    id: 'news',
+    label: 'News',
+    blurb: 'Live RSS from five outlets, clustered into topics and chronological threads.',
+    status: 'available',
+    path: '/news',
+  },
+  {
     id: 'film',
     label: 'Movies',
     blurb: 'Films as first-class works, with production and release chronology.',

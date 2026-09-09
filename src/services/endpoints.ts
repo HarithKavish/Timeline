@@ -43,3 +43,23 @@ export const endpoints = {
 } as const;
 
 export type Endpoints = typeof endpoints;
+
+/**
+ * The News domain is served by a separate, real backend (`workers/news`,
+ * a Cloudflare Worker + D1 — see its README) rather than `API_BASE`: it has
+ * its own ingestion cron and its own origin. `VITE_NEWS_API_BASE` is set in
+ * `.env` per environment; see `.env.example`.
+ */
+export const NEWS_API_BASE: string =
+  import.meta.env.VITE_NEWS_API_BASE ?? 'http://localhost:8787';
+
+export const newsEndpoints = {
+  /** GET {NEWS_API_BASE}/topics?… → NewsTimelineResponse */
+  newsTopics: (search: string) => `${NEWS_API_BASE}/topics${search ? `?${search}` : ''}`,
+
+  /** GET {NEWS_API_BASE}/topics/:id → NewsTopicDetail */
+  newsTopic: (id: string) => `${NEWS_API_BASE}/topics/${encodeURIComponent(id)}`,
+
+  /** GET {NEWS_API_BASE}/outlets → NewsOutlet[] */
+  newsOutlets: () => `${NEWS_API_BASE}/outlets`,
+} as const;
