@@ -1,2 +1,3 @@
 export * from './musicService';
-export { endpoints, API_BASE } from './endpoints';
+export * from './newsService';
+export { endpoints, API_BASE, newsEndpoints, NEWS_API_BASE } from './endpoints';

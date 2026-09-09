@@ -186,10 +186,11 @@ export function DemoNotice({ compact = false }: { compact?: boolean }) {
     <aside className="demo-notice" aria-label="Data status">
       <span className="demo-notice__tag mono">DEMO DATA</span>
       <p>
-        This build runs entirely on a demonstration dataset. Work, film and creator names are
-        real, but dates, durations, credits and <strong>all source records are placeholders</strong>
+        The Music domain runs entirely on a demonstration dataset. Work, film and creator names
+        are real, but dates, durations, credits and <strong>all source records are placeholders</strong>
         {' '}— nothing here was retrieved from the organisations named, and no locator is a real
-        URL. Source-backed ingestion is a later stage.
+        URL. Source-backed ingestion is a later stage for Music; the News domain already has it
+        — see <Link to="/news">News</Link>.
       </p>
     </aside>
   );

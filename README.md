@@ -6,11 +6,13 @@ A source-backed chronological catalogue of creative works and the people who mad
 
 Production site: **https://timeline.harithkavish.com**
 
-> **Stage 1 — frontend only.** This build runs entirely on a demonstration dataset held in
-> memory. There is no backend, no database, no ingestion, no authentication and no external
-> API. Work, film and creator names are real; **dates, durations, credits and every source
-> record are placeholders**. No locator in this repository is a real URL — source placeholders
-> use a `timeline-demo://` scheme precisely so they can never be mistaken for citations.
+> **Stage 1 — frontend only, with one exception.** The Music domain runs entirely on a
+> demonstration dataset held in memory: no backend, no database, no ingestion. Work, film and
+> creator names are real; **dates, durations, credits and every source record are
+> placeholders**, and no locator is a real URL. The **News domain is the exception**: it is a
+> real pipeline (`workers/news`) doing live RSS ingestion, cross-source dedup and topic/thread
+> clustering against five real outlets, and every article link is real. See
+> [News](#news) below.
 
 ---
 
@@ -48,6 +50,8 @@ Three principles run through the whole build:
 | `/music/creator/:slug` | Creator detail — e.g. `/music/creator/ar-rahman` |
 | `/music/work/:slug` | Work detail — e.g. `/music/work/kannalane` |
 | `/search` | Addressable search results (the ⌘K / `/` dialog is available everywhere) |
+| `/news` | News timeline — live topics, filterable by outlet, status and search |
+| `/news/topic/:id` | A topic's full thread — every development, chronological, with sources |
 | `/movies`, `/games`, `/books`, `/software`, `/technology` | Declared, not yet catalogued |
 
 ---
@@ -59,19 +63,24 @@ src/
   types/          domain model — the contract everything else agrees on
     common.ts       EntityId, Domain, Fact<T>, Certainty, PartialDate, Source, Relationship
     music.ts        Person, Creator, Work, Recording, Release, ReleaseEvent, Credit, Film, Label
+    news.ts         NewsOutlet, NewsArticle, NewsTopic, NewsThreadEntry — real, not mock
     api.ts          request/response shapes — the future HTTP contract
   data/
     builders.ts     compact authoring specs → normalised entities
-    domains.ts      the domain register (music available, the rest planned)
+    domains.ts      the domain register (music and news available, the rest planned)
     mock/           the demonstration catalogue + an indexed in-memory store (`db`)
   services/       THE boundary. Async functions, one per future endpoint
-    endpoints.ts    the HTTP paths stage 2 will implement
-    musicService.ts the in-memory implementation of those endpoints
-  hooks/          useQuery, useTimelineFilters (URL-backed), useTheme, useMediaQuery
-  components/     navigation/ search/ timeline/ filters/ works/ creators/ sources/ ui/
-  pages/          Home/ Music/ Timeline/ Creator/ Work/ Search/ Domain/ NotFound/
+    endpoints.ts    the HTTP paths stage 2 will implement, plus the News worker's paths
+    musicService.ts the in-memory implementation of the music endpoints
+    newsService.ts  real `fetch` calls against workers/news — see the News section below
+  hooks/          useQuery, useTimelineFilters / useNewsFilters (URL-backed), useTheme
+  components/     navigation/ search/ timeline/ filters/ works/ creators/ sources/ news/ ui/
+  pages/          Home/ Music/ Timeline/ Creator/ Work/ Search/ Domain/ News/ NotFound/
   styles/         tokens.css (design tokens, light + dark), base.css, pages.css
-  utils/          date, duration and label formatting
+  utils/          date, duration, label and news-timestamp formatting
+
+workers/
+  news/           the Cloudflare Worker + D1 ingestion and API — see workers/news/README.md
 ```
 
 ### The data model, and why it is not a list of songs
@@ -148,6 +157,43 @@ untouched, so the chronology keeps its alignment and density.
   year-density strip rescales to the viewport.
 - The year-density chart is the range selector — click a year, shift-click a second for a
   span — and ships a screen-reader table of the same numbers.
+
+---
+
+## News
+
+The one domain in this build backed by something real instead of `src/data/mock`: a Cloudflare
+Worker + D1 pipeline (`workers/news/`) that ingests five outlets' own RSS feeds every 5 minutes,
+dedupes and clusters what it finds, and serves the result over a small JSON API that
+`src/services/newsService.ts` calls with a plain `fetch` — the same service-boundary pattern the
+Music domain is staged for, just implemented now instead of later.
+
+**Sources** — BBC News, NPR, Al Jazeera, The Guardian, PBS NewsHour. All five publish free,
+official RSS directly; none require a key. Reuters and AP no longer offer free direct RSS
+(Reuters dropped theirs in 2020) and are deliberately not replaced with a Google News scrape,
+which would be aggregator content wearing a publisher's name.
+
+**Topics and threads** — a *topic* is a cluster of articles judged to report the same real-world
+story; its *thread* is the chronological list of distinct developments within it, and each
+development lists every outlet that corroborated it. The clustering is TF-weighted cosine
+similarity over a rolling time window (the classic topic-detection-and-tracking approach), not a
+trained model — see `workers/news/README.md` for the full write-up, the exact thresholds, and
+what corroboration vs. a genuinely new development means for the algorithm.
+
+**Running it locally**
+
+```bash
+npm --prefix workers/news install
+npm --prefix workers/news run db:apply     # local D1 schema
+npm --prefix workers/news run dev          # serves the API on :8787
+
+cp .env.example .env                        # VITE_NEWS_API_BASE defaults to :8787
+npm run dev                                 # the News tab now shows live data
+```
+
+Nothing under `workers/news` ships to GitHub Pages — it deploys separately (`npm run deploy`
+inside that directory), to Cloudflare, on its own cron. See `workers/news/README.md` for one-time
+setup (`wrangler login`, `wrangler d1 create`) and deploy steps.
 
 ---
 

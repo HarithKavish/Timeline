@@ -1,0 +1,24 @@
+{
+  "name": "timeline-news-worker",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Live RSS ingestion, cross-source dedup and topic/thread clustering for Timeline's News domain.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "db:create": "wrangler d1 create timeline-news",
+    "db:apply": "wrangler d1 execute timeline-news --local --file=./schema.sql",
+    "db:apply:remote": "wrangler d1 execute timeline-news --remote --file=./schema.sql",
+    "ingest:once": "wrangler dev --test-scheduled"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^4.5.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250101.0",
+    "typescript": "~5.8.3",
+    "wrangler": "^3.90.0"
+  }
+}

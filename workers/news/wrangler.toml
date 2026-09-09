@@ -1,0 +1,23 @@
+name = "timeline-news"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Ingestion cadence. Cloudflare's free plan allows one Cron Trigger; every 5
+# minutes still keeps the D1 free tier's daily write budget headroomed
+# (5 outlets x ~30 items x 288 runs/day is comfortably under the
+# 100k-row/day limit, since most runs touch only already-seen articles).
+[triggers]
+crons = ["*/5 * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "timeline-news"
+# Fill in after running `npm run db:create` — wrangler prints the id.
+database_id = "96c43e8a-5bd3-41de-8c94-04e2facc7345"
+
+# Uncomment and point at a subdomain once the worker has a stable name, so the
+# frontend's VITE_NEWS_API_BASE never has to change across redeploys.
+# [[routes]]
+# pattern = "news-api.timeline.harithkavish.com/*"
+# custom_domain = true
