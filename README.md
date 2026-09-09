@@ -163,7 +163,7 @@ untouched, so the chronology keeps its alignment and density.
 ## News
 
 The one domain in this build backed by something real instead of `src/data/mock`: a Cloudflare
-Worker + D1 pipeline (`workers/news/`) that ingests five outlets' own RSS feeds every 20 minutes,
+Worker + D1 pipeline (`workers/news/`) that ingests five outlets' own RSS feeds every 5 minutes,
 dedupes and clusters what it finds, and serves the result over a small JSON API that
 `src/services/newsService.ts` calls with a plain `fetch` — the same service-boundary pattern the
 Music domain is staged for, just implemented now instead of later.

@@ -3,11 +3,12 @@ main = "src/index.ts"
 compatibility_date = "2026-09-01"
 compatibility_flags = ["nodejs_compat"]
 
-# Ingestion cadence. Cloudflare's free plan allows one Cron Trigger; every 20
-# minutes keeps the D1 free tier's daily write budget comfortably headroomed
-# (5 outlets x ~30 items x 72 runs/day is well under the 100k-row/day limit).
+# Ingestion cadence. Cloudflare's free plan allows one Cron Trigger; every 5
+# minutes still keeps the D1 free tier's daily write budget headroomed
+# (5 outlets x ~30 items x 288 runs/day is comfortably under the
+# 100k-row/day limit, since most runs touch only already-seen articles).
 [triggers]
-crons = ["*/20 * * * *"]
+crons = ["*/5 * * * *"]
 
 [[d1_databases]]
 binding = "DB"

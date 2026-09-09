@@ -7,7 +7,7 @@ export function LiveNotice({ outlets }: { outlets: NewsOutlet[] }) {
     <aside className="live-notice" aria-label="Data status">
       <span className="live-notice__tag mono">LIVE DATA</span>
       <p>
-        Ingested every 20 minutes from {outlets.length || 'several'} outlets'
+        Ingested every 5 minutes from {outlets.length || 'several'} outlets'
         {' '}own RSS feeds{outlets.length ? ` (${outlets.map((o) => o.name).join(', ')})` : ''} — every
         article links to the real source. Topics and threads are grouped automatically by a
         similarity heuristic, not edited by hand, so occasional mis-groupings are expected; see{' '}

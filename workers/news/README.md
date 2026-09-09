@@ -49,7 +49,7 @@ npm run db:apply:remote    # remote D1, for the deployed worker
 npm run deploy
 ```
 
-This registers the Cron Trigger (`*/20 * * * *`, in `wrangler.toml`) and the
+This registers the Cron Trigger (`*/5 * * * *`, in `wrangler.toml`) and the
 `fetch` handler on your `*.workers.dev` subdomain. Once the worker has a
 stable name, uncomment the `[[routes]]` block in `wrangler.toml` and point
 `news-api.timeline.harithkavish.com` at it via a CNAME to
