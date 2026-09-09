@@ -44,6 +44,8 @@ jobs:
           # The site is served from the root of timeline.harithkavish.com.
           # For a project-path deployment set this to /<repo-name>/ instead.
           TIMELINE_BASE: /
+          # The deployed Timeline News worker (workers/news) — see its README.
+          VITE_NEWS_API_BASE: https://timeline-news.harithkavish40.workers.dev
 
       - uses: actions/configure-pages@v5
 
