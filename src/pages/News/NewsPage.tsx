@@ -1,18 +1,31 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '../../hooks/useQuery';
-import { useNewsFilters } from '../../hooks/useNewsFilters';
-import { getNewsOutlets, getNewsTopics } from '../../services/newsService';
+import { getNewsByCategory, getNewsOutlets } from '../../services/newsService';
 import { LiveNotice } from '../../components/news/LiveNotice';
 import { NewsErrorState } from '../../components/news/NewsErrorState';
-import { NewsFilters } from '../../components/news/NewsFilters';
 import { TopicCard } from '../../components/news/TopicCard';
-import { EmptyState, LoadingState } from '../../components/ui/Primitives';
+import { EmptyState, LoadingState, Section } from '../../components/ui/Primitives';
+import { NEWS_CATEGORIES, NEWS_CATEGORY_LABEL } from '../../types/news';
+import type { NewsCategory, NewsTopic } from '../../types/news';
 import '../../styles/pages.css';
+import '../../components/news/news.css';
 
+const CATEGORY_DESCRIPTION: Record<NewsCategory, string> = {
+  international: 'Everywhere but home — five outlets, none of them Indian.',
+  national: 'India.',
+  state: 'Tamil Nadu.',
+  city: 'Rajapalayam.',
+};
+
+const CITY_BLOCKED_NOTE =
+  "Currently empty: the only free source for Rajapalayam-specific coverage is a Google News search feed, and Google returns 503 specifically to this worker's Cloudflare network range — the identical request succeeds from an ordinary connection. This is an infrastructure block, not a timing issue; refreshing won't fix it.";
+
+const TOPICS_PER_CATEGORY = 3;
+
+/** The News homepage: four categories shown directly, latest topics first — no search box in the way. */
 export function NewsPage() {
-  const controller = useNewsFilters();
   const outletsState = useQuery(getNewsOutlets, []);
-  const topicsState = useQuery(() => getNewsTopics(controller.query), [JSON.stringify(controller.query)]);
+  const categorizedState = useQuery(() => getNewsByCategory(TOPICS_PER_CATEGORY), []);
 
   const outlets = outletsState.status === 'success' ? outletsState.data : [];
 
@@ -28,42 +41,55 @@ export function NewsPage() {
         <p className="eyebrow page-head__eyebrow">News · live</p>
         <h1 className="page-head__title display">The news timeline</h1>
         <p className="page-head__lede">
-          Live RSS from several outlets, deduplicated and clustered into <strong>topics</strong> —
-          the same real-world story — each with a chronological <strong>thread</strong> of the
-          distinct developments in it, and every development corroborated by whichever outlets
-          reported it.
+          The latest {TOPICS_PER_CATEGORY} topics in each of four tiers, newest first — every
+          topic a cluster of articles on the same real-world story, each with a chronological
+          thread of the distinct developments in it, corroborated by whichever outlets reported
+          them.
         </p>
       </header>
 
       <LiveNotice outlets={outlets} />
 
-      <NewsFilters controller={controller} outlets={outlets} />
+      {categorizedState.status === 'loading' ? <LoadingState label="Loading news…" /> : null}
+      {categorizedState.status === 'error' ? <NewsErrorState error={categorizedState.error} /> : null}
 
-      {topicsState.status === 'loading' ? <LoadingState label="Loading topics…" /> : null}
-      {topicsState.status === 'error' ? <NewsErrorState error={topicsState.error} /> : null}
-      {topicsState.status === 'success' ? <NewsTopicResults topics={topicsState.data} /> : null}
+      {categorizedState.status === 'success' ? (
+        <>
+          {NEWS_CATEGORIES.map((category) => (
+            <CategorySection
+              key={category}
+              category={category}
+              topics={categorizedState.data[category]}
+            />
+          ))}
+        </>
+      ) : null}
     </div>
   );
 }
 
-function NewsTopicResults({ topics }: { topics: Awaited<ReturnType<typeof getNewsTopics>> }) {
-  if (topics.items.length === 0) {
-    return (
-      <EmptyState title="No topics match these filters">
-        Try clearing the search term or outlet filter.
-      </EmptyState>
-    );
-  }
+function CategorySection({ category, topics }: { category: NewsCategory; topics: NewsTopic[] }) {
   return (
-    <>
-      <p className="explorer__count">
-        {topics.total} {topics.total === 1 ? 'topic' : 'topics'}
-      </p>
-      <ul className="topic-list">
-        {topics.items.map((topic) => (
-          <TopicCard key={topic.id} topic={topic} />
-        ))}
-      </ul>
-    </>
+    <Section
+      eyebrow={CATEGORY_DESCRIPTION[category]}
+      title={NEWS_CATEGORY_LABEL[category]}
+      action={
+        <Link className="link" to={`/news/browse?category=${category}`}>
+          See all
+        </Link>
+      }
+    >
+      {topics.length === 0 ? (
+        <EmptyState title={category === 'city' ? 'No Rajapalayam coverage reachable right now' : 'Nothing ingested yet in this category'}>
+          {category === 'city' ? CITY_BLOCKED_NOTE : 'The pipeline polls every 5 minutes — check back shortly.'}
+        </EmptyState>
+      ) : (
+        <ul className="topic-list">
+          {topics.map((topic) => (
+            <TopicCard key={topic.id} topic={topic} />
+          ))}
+        </ul>
+      )}
+    </Section>
   );
 }

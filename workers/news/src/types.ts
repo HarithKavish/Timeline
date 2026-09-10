@@ -14,6 +14,15 @@ export interface FeedItem {
 /** Sparse bag-of-terms weight vector, keyed by token (entities prefixed `ent:`). */
 export type TermVector = Record<string, number>;
 
+/**
+ * Geographic scope. Assigned per outlet (an outlet's whole feed is one
+ * scope) and inherited by every article and topic it produces — clustering
+ * only ever compares articles within the same category, so a national
+ * Indian story can never merge with an unrelated international one just
+ * because they share vocabulary.
+ */
+export type NewsCategory = 'international' | 'national' | 'state' | 'city';
+
 /* ---- Public API response shapes — mirrored by src/types/news.ts in the frontend ---- */
 
 export interface PublicOutlet {
@@ -21,6 +30,7 @@ export interface PublicOutlet {
   name: string;
   homepage: string;
   region: string;
+  category: NewsCategory;
 }
 
 export interface PublicArticle {
@@ -46,6 +56,7 @@ export type TopicStatus = 'developing' | 'settled';
 export interface PublicTopic {
   id: string;
   title: string;
+  category: NewsCategory;
   firstSeenAt: string;
   lastUpdatedAt: string;
   outletCount: number;
@@ -66,3 +77,6 @@ export interface TopicsResponse {
   limit: number;
   outlets: PublicOutlet[];
 }
+
+/** The category-first homepage view: the latest N topics per category, newest first. */
+export type CategorizedTopics = Record<NewsCategory, PublicTopic[]>;

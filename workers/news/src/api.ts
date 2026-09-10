@@ -1,7 +1,9 @@
 import { DEVELOPING_WINDOW_HOURS } from './cluster';
 import { OUTLETS, outletById } from './outlets';
 import type {
+  CategorizedTopics,
   Env,
+  NewsCategory,
   PublicArticle,
   PublicOutlet,
   PublicThreadEntry,
@@ -10,6 +12,8 @@ import type {
   TopicsResponse,
   TopicStatus,
 } from './types';
+
+const CATEGORIES: NewsCategory[] = ['international', 'national', 'state', 'city'];
 
 const ALLOWED_ORIGINS = new Set([
   'https://timeline.harithkavish.com',
@@ -40,7 +44,13 @@ function statusOf(lastUpdatedAt: string, now: number): TopicStatus {
 }
 
 function toPublicOutlet(outlet: (typeof OUTLETS)[number]): PublicOutlet {
-  return { id: outlet.id, name: outlet.name, homepage: outlet.homepage, region: outlet.region };
+  return {
+    id: outlet.id,
+    name: outlet.name,
+    homepage: outlet.homepage,
+    region: outlet.region,
+    category: outlet.category,
+  };
 }
 
 export async function handleApi(request: Request, env: Env): Promise<Response> {
@@ -52,6 +62,10 @@ export async function handleApi(request: Request, env: Env): Promise<Response> {
 
   if (url.pathname === '/outlets') {
     return json(OUTLETS.map(toPublicOutlet), headers);
+  }
+
+  if (url.pathname === '/topics/by-category') {
+    return getCategorizedTopics(env.DB, url.searchParams, headers);
   }
 
   const topicMatch = url.pathname.match(/^\/topics\/([^/]+)$/);
@@ -66,12 +80,64 @@ export async function handleApi(request: Request, env: Env): Promise<Response> {
   return json({ error: 'Not found' }, headers, 404);
 }
 
+/** The category-first homepage view: the latest `limit` topics per category, newest first. */
+async function getCategorizedTopics(
+  db: D1Database,
+  params: URLSearchParams,
+  headers: HeadersInit,
+): Promise<Response> {
+  const limit = clamp(Number(params.get('limit')) || 3, 1, 20);
+  const now = Date.now();
+
+  const perCategory = await Promise.all(
+    CATEGORIES.map(async (category) => {
+      const { results } = await db
+        .prepare(
+          `SELECT t.id, t.title, t.first_seen_at, t.last_updated_at,
+             (SELECT COUNT(DISTINCT a.outlet_id) FROM articles a WHERE a.topic_id = t.id) AS outlet_count,
+             (SELECT COUNT(*) FROM articles a WHERE a.topic_id = t.id) AS article_count,
+             (SELECT COUNT(*) FROM thread_entries e WHERE e.topic_id = t.id) AS entry_count
+           FROM topics t
+           WHERE t.category = ?
+           ORDER BY t.last_updated_at DESC
+           LIMIT ?`,
+        )
+        .bind(category, limit)
+        .all<{
+          id: string;
+          title: string;
+          first_seen_at: string;
+          last_updated_at: string;
+          outlet_count: number;
+          article_count: number;
+          entry_count: number;
+        }>();
+      const topics: PublicTopic[] = results.map((row) => ({
+        id: row.id,
+        title: row.title,
+        category,
+        firstSeenAt: row.first_seen_at,
+        lastUpdatedAt: row.last_updated_at,
+        outletCount: row.outlet_count,
+        articleCount: row.article_count,
+        entryCount: row.entry_count,
+        status: statusOf(row.last_updated_at, now),
+      }));
+      return [category, topics] as const;
+    }),
+  );
+
+  const response = Object.fromEntries(perCategory) as CategorizedTopics;
+  return json(response, headers);
+}
+
 async function listTopics(db: D1Database, params: URLSearchParams, headers: HeadersInit): Promise<Response> {
   const limit = clamp(Number(params.get('limit')) || 30, 1, 100);
   const offset = Math.max(0, Number(params.get('offset')) || 0);
   const sort = params.get('sort') === 'oldest' ? 'ASC' : 'DESC';
   const statusFilter = params.get('status');
   const outletFilter = params.get('outletId');
+  const categoryFilter = params.get('category');
   const q = params.get('q')?.trim();
   const from = params.get('from');
   const to = params.get('to');
@@ -79,6 +145,10 @@ async function listTopics(db: D1Database, params: URLSearchParams, headers: Head
   const conditions: string[] = [];
   const binds: unknown[] = [];
 
+  if (categoryFilter && CATEGORIES.includes(categoryFilter as NewsCategory)) {
+    conditions.push('t.category = ?');
+    binds.push(categoryFilter);
+  }
   if (q) {
     conditions.push('t.title LIKE ?');
     binds.push(`%${q}%`);
@@ -99,7 +169,7 @@ async function listTopics(db: D1Database, params: URLSearchParams, headers: Head
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
   const baseQuery = `
-    SELECT t.id, t.title, t.first_seen_at, t.last_updated_at,
+    SELECT t.id, t.title, t.category, t.first_seen_at, t.last_updated_at,
       (SELECT COUNT(DISTINCT a.outlet_id) FROM articles a WHERE a.topic_id = t.id) AS outlet_count,
       (SELECT COUNT(*) FROM articles a WHERE a.topic_id = t.id) AS article_count,
       (SELECT COUNT(*) FROM thread_entries e WHERE e.topic_id = t.id) AS entry_count
@@ -114,6 +184,7 @@ async function listTopics(db: D1Database, params: URLSearchParams, headers: Head
       .all<{
         id: string;
         title: string;
+        category: NewsCategory;
         first_seen_at: string;
         last_updated_at: string;
         outlet_count: number;
@@ -130,6 +201,7 @@ async function listTopics(db: D1Database, params: URLSearchParams, headers: Head
   let items: PublicTopic[] = rows.results.map((row) => ({
     id: row.id,
     title: row.title,
+    category: row.category,
     firstSeenAt: row.first_seen_at,
     lastUpdatedAt: row.last_updated_at,
     outletCount: row.outlet_count,
@@ -154,9 +226,9 @@ async function listTopics(db: D1Database, params: URLSearchParams, headers: Head
 
 async function getTopicDetail(db: D1Database, topicId: string, headers: HeadersInit): Promise<Response> {
   const topicRow = await db
-    .prepare('SELECT id, title, first_seen_at, last_updated_at FROM topics WHERE id = ?')
+    .prepare('SELECT id, title, category, first_seen_at, last_updated_at FROM topics WHERE id = ?')
     .bind(topicId)
-    .first<{ id: string; title: string; first_seen_at: string; last_updated_at: string }>();
+    .first<{ id: string; title: string; category: NewsCategory; first_seen_at: string; last_updated_at: string }>();
   if (!topicRow) return json({ error: 'Topic not found' }, headers, 404);
 
   const [entryRows, articleRows] = await Promise.all([
@@ -213,6 +285,7 @@ async function getTopicDetail(db: D1Database, topicId: string, headers: HeadersI
   const detail: PublicTopicDetail = {
     id: topicRow.id,
     title: topicRow.title,
+    category: topicRow.category,
     firstSeenAt: topicRow.first_seen_at,
     lastUpdatedAt: topicRow.last_updated_at,
     outletCount: outletsUsed.size,

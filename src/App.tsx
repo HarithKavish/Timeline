@@ -12,6 +12,7 @@ import { WorkPage } from './pages/Work/WorkPage';
 import { SearchPage } from './pages/Search/SearchPage';
 import { DomainPage } from './pages/Domain/DomainPage';
 import { NewsPage } from './pages/News/NewsPage';
+import { NewsBrowsePage } from './pages/News/NewsBrowsePage';
 import { TopicPage } from './pages/News/TopicPage';
 import { NotFoundPage } from './pages/NotFound/NotFoundPage';
 
@@ -42,6 +43,7 @@ export function App() {
           <Route path="/music/work/:slug" element={<WorkPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/news" element={<NewsPage />} />
+          <Route path="/news/browse" element={<NewsBrowsePage />} />
           <Route path="/news/topic/:id" element={<TopicPage />} />
           <Route path="/movies" element={<DomainPage />} />
           <Route path="/games" element={<DomainPage />} />

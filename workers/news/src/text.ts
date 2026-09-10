@@ -10,12 +10,21 @@ const STOPWORDS = new Set([
   'live', 'update', 'updates', 'latest',
 ]);
 
+/**
+ * Unicode-aware: keeps any script's letters/marks/digits (`\p{L}\p{N}\p{M}`),
+ * not just a-z0-9. The State and City tiers carry Tamil-language headlines,
+ * and an ASCII-only filter would reduce every one of those to an empty
+ * vector — no match signal at all, not even exact-duplicate detection.
+ * Combining marks (`\p{M}`) matter here specifically: Tamil vowel signs are
+ * separate code points from their base consonant, and stripping them would
+ * collapse distinct words down to the same consonant skeleton.
+ */
 function tokenize(text: string): string[] {
   return text
     .toLowerCase()
-    .normalize('NFKD')
+    .normalize('NFC')
     .replace(/[’']/g, '')
-    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/[^\p{L}\p{N}\p{M}\s]/gu, ' ')
     .split(/\s+/)
     .filter((token) => token.length > 1 && !STOPWORDS.has(token));
 }

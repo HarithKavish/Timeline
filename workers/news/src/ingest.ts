@@ -13,7 +13,7 @@ import {
   type NewArticle,
 } from './db';
 import { OUTLETS } from './outlets';
-import type { Env } from './types';
+import type { Env, NewsCategory } from './types';
 
 const FETCH_TIMEOUT_MS = 10_000;
 
@@ -25,7 +25,7 @@ export async function runIngest(env: Env): Promise<void> {
       const items = await fetchOutlet(outlet.feedUrl);
       for (const item of items) {
         if (!item.link) continue;
-        await processItem(env.DB, outlet.id, item);
+        await processItem(env.DB, outlet.id, outlet.category, item);
       }
     } catch (error) {
       console.error(`[news-ingest] ${outlet.id} failed:`, error);
@@ -57,6 +57,7 @@ async function fetchOutlet(feedUrl: string) {
 async function processItem(
   db: D1Database,
   outletId: string,
+  category: NewsCategory,
   item: { title: string; link: string; summary: string | null; publishedAt: string | null },
 ): Promise<void> {
   const url = canonicalizeUrl(item.link);
@@ -75,11 +76,11 @@ async function processItem(
   };
 
   const vector = buildVector(item.title, item.summary);
-  const candidateTopics = await getCandidateTopics(db, now);
+  const candidateTopics = await getCandidateTopics(db, category, now);
   const topicMatch = pickTopic(vector, candidateTopics);
 
   if (!topicMatch) {
-    await createTopic(db, crypto.randomUUID(), crypto.randomUUID(), article, vector);
+    await createTopic(db, crypto.randomUUID(), crypto.randomUUID(), article, vector, category);
     return;
   }
 

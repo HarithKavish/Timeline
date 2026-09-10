@@ -11,12 +11,15 @@ CREATE TABLE IF NOT EXISTS outlets (
   name TEXT NOT NULL,
   homepage TEXT NOT NULL,
   feed_url TEXT NOT NULL,
-  region TEXT NOT NULL
+  region TEXT NOT NULL,
+  -- 'international' | 'national' | 'state' | 'city'
+  category TEXT NOT NULL DEFAULT 'international'
 );
 
 CREATE TABLE IF NOT EXISTS topics (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT 'international',
   first_seen_at TEXT NOT NULL,
   last_updated_at TEXT NOT NULL,
   -- Recency-weighted centroid of every thread entry's term vector, as JSON
@@ -47,6 +50,7 @@ CREATE TABLE IF NOT EXISTS articles (
 );
 
 CREATE INDEX IF NOT EXISTS idx_topics_last_updated ON topics(last_updated_at);
+CREATE INDEX IF NOT EXISTS idx_topics_category ON topics(category, last_updated_at);
 CREATE INDEX IF NOT EXISTS idx_thread_entries_topic ON thread_entries(topic_id);
 CREATE INDEX IF NOT EXISTS idx_articles_topic ON articles(topic_id);
 CREATE INDEX IF NOT EXISTS idx_articles_thread_entry ON articles(thread_entry_id);
