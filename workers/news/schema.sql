@@ -22,8 +22,10 @@ CREATE TABLE IF NOT EXISTS topics (
   category TEXT NOT NULL DEFAULT 'international',
   first_seen_at TEXT NOT NULL,
   last_updated_at TEXT NOT NULL,
-  -- Recency-weighted centroid of every thread entry's term vector, as JSON
-  -- {term: weight}. Recomputed after every article that joins this topic.
+  -- Recency-weighted centroid of every thread entry's embedding, as a JSON
+  -- array of floats (bge-m3, 1024-dim). Recomputed after every article that
+  -- joins this topic. Column kept its name across the embeddings migration
+  -- (0002) — only what's stored in it changed.
   centroid_json TEXT NOT NULL
 );
 
@@ -32,7 +34,7 @@ CREATE TABLE IF NOT EXISTS thread_entries (
   topic_id TEXT NOT NULL REFERENCES topics(id),
   occurred_at TEXT NOT NULL,
   headline TEXT NOT NULL,
-  -- This entry's own term vector (not the topic's), used to tell a genuinely
+  -- This entry's own embedding (not the topic's), used to tell a genuinely
   -- new development apart from another outlet corroborating this one.
   vector_json TEXT NOT NULL
 );

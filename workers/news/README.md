@@ -60,11 +60,11 @@ feeds; see the open question in the root README's News section) — right now
 they contribute nothing, and the City section says so rather than showing a
 plausible-looking empty state.
 
-Tamil-language text (State and City tiers) is what motivated the tokenizer's
-Unicode fix in `src/text.ts` — the original ASCII-only filter would have
-reduced every Tamil headline to an empty vector. The capitalised-word entity
-heuristic is still Latin-script-only and simply doesn't fire for Tamil text;
-plain-term overlap still provides matching signal.
+Tamil-language text (State and City tiers) is part of why clustering moved
+to `bge-m3` embeddings (see below) rather than staying on the earlier
+hand-built term vectors — `bge-m3` is multilingual, so Tamil and English
+headlines share one real semantic space instead of the Tamil half being
+reduced to noise by an English-only heuristic.
 
 Add more outlets by appending to `src/outlets.ts` with a `category` —
 nothing else needs to change; ingestion, storage and the API are all
@@ -84,12 +84,30 @@ npm run db:apply           # local D1, for `wrangler dev`
 npm run db:apply:remote    # remote D1, for the deployed worker
 ```
 
-Upgrading a database created before the geographic-category tier existed?
-Apply the migration once, in addition to (not instead of) `schema.sql`:
+Upgrading an existing database? Apply migrations in order, in addition to
+(not instead of) `schema.sql`:
 
 ```bash
 npx wrangler d1 execute timeline-news --remote --file=./migrations/0001_add_category.sql
+npx wrangler d1 execute timeline-news --remote --file=./migrations/0002_reset_for_embeddings.sql
 ```
+
+0002 clears `articles`/`thread_entries`/`topics` — the switch from
+term-vectors to real embeddings (see below) means the old rows can't be
+compared against anything the new pipeline produces. This is ephemeral news
+data, not an archive, so a reset is the honest fix rather than a backfill;
+everything re-ingests within a few cron cycles.
+
+Also needs a Workers AI binding — add to `wrangler.toml` (already present in
+this repo's copy, shown for a from-scratch setup):
+
+```toml
+[ai]
+binding = "AI"
+```
+
+No separate account or API key: Workers AI is available to every Cloudflare
+account this worker is already deployed to.
 
 ## Deploy
 
@@ -121,33 +139,73 @@ npx wrangler dev --test-scheduled   # then curl the printed /__scheduled URL to 
 All responses are JSON, CORS-restricted to the Timeline origins listed in
 `src/api.ts`, cached at the edge for 60 seconds.
 
-## The clustering algorithm, briefly
+## The clustering + narrative pipeline
+
+The first version of this ran entirely on hand-built term-frequency vectors
+— cosine similarity over shared words, with entity-weighting and anti-
+chaining heuristics bolted on as real production traffic found their
+failure modes (see git history on `src/cluster.ts` for what those were).
+That approach has a hard ceiling: it counts shared *words*, so it can never
+reliably tell "the same claim, reworded" apart from "a different claim, same
+people" — every article in a topic already shares that topic's dominant
+names, so word-overlap between any two of its articles is inflated
+regardless of whether they're actually the same development. The pipeline
+now uses real language understanding instead, via Cloudflare Workers AI
+(same account, same worker — no new signup, no external API key):
 
 1. **Normalize.** Each feed item's URL is canonicalized (tracking params and
    fragments stripped) and hashed; an article already seen by that URL is
-   skipped outright — that's the exact-duplicate layer.
-2. **Vectorize.** Title and summary are tokenized, stopworded, and turned into
-   a term-frequency vector, with title terms weighted above summary terms and
-   capitalized-word runs (a cheap proxy for named entities: people, places,
-   organizations) weighted above plain vocabulary. This is deliberately not
-   full TF-IDF — that needs a maintained corpus-wide document-frequency table,
-   a reasonable upgrade once real clustering behaviour has been observed, but
-   more complexity than a five-outlet v1 needs.
+   skipped outright — the exact-duplicate layer, unchanged.
+2. **Embed.** Title + summary go to `@cf/baai/bge-m3`, a real multilingual
+   sentence-embedding model — one semantic space that understands English
+   and Tamil headlines alike, not two separate heuristics. `embedText` in
+   `src/embeddings.ts`; graceful fallback (a standalone topic, not a dropped
+   article) if the call fails.
 3. **Match a topic.** Cosine similarity against the centroids of every topic
-   updated in the last 4 days. Below `ENTRY_THRESHOLD` (`src/cluster.ts`),
-   nothing matches and the article starts a new topic.
-4. **Match a thread entry.** Within the matched topic, cosine similarity
-   against each existing thread entry's own vector. Above
-   `DUPLICATE_THRESHOLD`, the article corroborates that entry (another
-   outlet, same development). Otherwise it becomes a new thread entry — a
-   genuine update to the story.
+   updated in the last 4 days, scoped to the article's category. Below
+   `TOPIC_MATCH_THRESHOLD` (`src/cluster.ts`), nothing matches and the
+   article starts a new topic.
+4. **Match a thread entry — the two-tier decision.** Within the matched
+   topic, cosine similarity against each existing entry's own embedding.
+     - **Above `DIRECT_DUPLICATE_THRESHOLD`** (very high confidence): treated
+       as corroboration immediately, no model call spent — this is the
+       common case of multiple outlets reporting the identical fact.
+     - **Otherwise**: an LLM (`@cf/meta/llama-3.1-8b-instruct-fp8`,
+       `src/narrative.ts`) is shown the *actual prior log* for this topic and
+       the *actual new article*, and asked to either write the next log entry
+       in one natural sentence, continuing the story, or respond `DUPLICATE`
+       if it judges this the same development already logged. This is the
+       "real language understanding" step — it reads content, not vectors,
+       so it catches the cases embedding cosine alone can't resolve (a
+       near-verbatim restatement vs. a genuinely different angle on the same
+       people), and it's what produces the natural, flowing thread instead of
+       a list of raw scraped headlines.
 5. **Recompute.** The topic's centroid is recomputed as a recency-weighted
-   average of its thread entries (`weightedCentroid` in `src/text.ts`, 3-day
-   half-life), so matching drifts with where the story is now rather than
-   staying anchored to how it started.
+   average of its thread entries' embeddings (`weightedCentroid` in
+   `src/embeddings.ts`, 3-day half-life), so matching drifts with where the
+   story is now rather than staying anchored to how it started.
 
-`ENTRY_THRESHOLD` and `DUPLICATE_THRESHOLD` are starting points from the
-topic-detection-and-tracking literature (TF-weighted cosine over a rolling
-window), not values tuned against this exact outlet set — watch the D1 data
-after a few days and adjust if stories are merging that shouldn't, or staying
-split that should merge.
+**Fallback discipline**: every AI call (embedding or generation) can fail —
+rate limit, transient error, anything — and every call site falls back to
+something safe (a standalone topic; the raw article title as the entry text)
+rather than blocking ingestion. The pipeline never depends on the AI calls
+succeeding to keep working; it only gets better prose and better matching
+when they do.
+
+`TOPIC_MATCH_THRESHOLD` and `DIRECT_DUPLICATE_THRESHOLD` (`src/cluster.ts`)
+are starting points, not values tuned against this exact corpus — same
+status as their term-vector predecessors, and the same expectation: watch
+real topics form over the next few days and adjust if stories are merging
+that shouldn't, or the LLM is being asked to arbitrate cases that are
+actually obvious either way.
+
+**Cost and latency, worth watching**: embedding is mandatory per new
+article (that's how matching happens at all); generation only runs when a
+match isn't a high-confidence direct duplicate, which bounds it to roughly
+"one call per genuine development," not "one call per article." Workers AI's
+free tier has a daily neuron allowance — fine at current volume, but if
+topic counts grow a lot this is the first thing to check if ingestion starts
+silently falling back to raw headlines more often than expected (that
+fallback is silent on purpose — it never blocks ingestion — so it's worth
+occasionally checking `wrangler tail` rather than assuming quiet means
+everything succeeded).

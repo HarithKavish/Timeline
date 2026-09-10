@@ -195,10 +195,16 @@ just because they share vocabulary — see `workers/news/README.md`.
 
 **Topics and threads** — a *topic* is a cluster of articles judged to report the same real-world
 story; its *thread* is the chronological list of distinct developments within it, and each
-development lists every outlet that corroborated it. The clustering is TF-weighted cosine
-similarity over a rolling time window (the classic topic-detection-and-tracking approach), not a
-trained model — see `workers/news/README.md` for the full write-up, the exact thresholds, and
-what corroboration vs. a genuinely new development means for the algorithm.
+development lists every outlet that corroborated it. Clustering runs on real semantic embeddings
+(`@cf/baai/bge-m3`, multilingual — needed for the Tamil-language State/City tiers), via Cloudflare
+Workers AI on the same account, no new signup. Each thread entry's text is written by an LLM
+(`@cf/meta/llama-3.1-8b-instruct-fp8`) that is shown the actual prior log and the actual new
+article and asked to continue the story in one natural sentence, or say `DUPLICATE` if it isn't a
+new development — that's what makes the thread read as a flowing narrative instead of a list of
+raw scraped headlines, and it doubles as a stronger duplicate check than vector math alone. Every
+AI call falls back to something safe (a standalone topic; the raw headline) on failure, so a flaky
+call never blocks ingestion — see `workers/news/README.md` for the full pipeline, the thresholds,
+and the cost/latency tradeoffs worth watching.
 
 **Running it locally**
 

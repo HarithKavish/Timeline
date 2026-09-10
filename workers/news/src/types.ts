@@ -1,5 +1,6 @@
 export interface Env {
   DB: D1Database;
+  AI: Ai;
 }
 
 /** One parsed, not-yet-deduped item read off a feed. */
@@ -11,8 +12,8 @@ export interface FeedItem {
   publishedAt: string | null;
 }
 
-/** Sparse bag-of-terms weight vector, keyed by token (entities prefixed `ent:`). */
-export type TermVector = Record<string, number>;
+/** A dense semantic embedding (bge-m3, 1024 dimensions) — see src/embeddings.ts. */
+export type Embedding = number[];
 
 /**
  * Geographic scope. Assigned per outlet (an outlet's whole feed is one
