@@ -7,7 +7,13 @@
  */
 
 import { newsEndpoints } from './endpoints';
-import type { NewsOutlet, NewsTimelineQuery, NewsTimelineResponse, NewsTopicDetail } from '../types/news';
+import type {
+  CategorizedTopics,
+  NewsOutlet,
+  NewsTimelineQuery,
+  NewsTimelineResponse,
+  NewsTopicDetail,
+} from '../types/news';
 
 export class NewsServiceError extends Error {
   constructor(message: string) {
@@ -33,6 +39,7 @@ async function getJson<T>(url: string): Promise<T> {
 function toSearchParams(query: NewsTimelineQuery): string {
   const params = new URLSearchParams();
   if (query.q?.trim()) params.set('q', query.q.trim());
+  if (query.category) params.set('category', query.category);
   if (query.outletId) params.set('outletId', query.outletId);
   if (query.status) params.set('status', query.status);
   if (query.from) params.set('from', query.from);
@@ -43,7 +50,12 @@ function toSearchParams(query: NewsTimelineQuery): string {
   return params.toString();
 }
 
-/** GET /topics — the news timeline: one row per topic, most recently updated first by default. */
+/** GET /topics/by-category — the News homepage: the latest `limit` topics in each of international/national/state/city, newest first. */
+export async function getNewsByCategory(limit = 3): Promise<CategorizedTopics> {
+  return getJson<CategorizedTopics>(newsEndpoints.newsCategorized(limit));
+}
+
+/** GET /topics — the flat, filterable news list, most recently updated first by default. */
 export async function getNewsTopics(query: NewsTimelineQuery = {}): Promise<NewsTimelineResponse> {
   return getJson<NewsTimelineResponse>(newsEndpoints.newsTopics(toSearchParams(query)));
 }

@@ -1,17 +1,17 @@
 import { weightedCentroid } from './text';
 import { TOPIC_WINDOW_DAYS, type CandidateEntry, type CandidateTopic } from './cluster';
-import type { TermVector } from './types';
+import type { NewsCategory, TermVector } from './types';
 import { OUTLETS } from './outlets';
 
 export async function ensureOutlets(db: D1Database): Promise<void> {
   const statements = OUTLETS.map((outlet) =>
     db
       .prepare(
-        `INSERT INTO outlets (id, name, homepage, feed_url, region) VALUES (?, ?, ?, ?, ?)
+        `INSERT INTO outlets (id, name, homepage, feed_url, region, category) VALUES (?, ?, ?, ?, ?, ?)
          ON CONFLICT(id) DO UPDATE SET name = excluded.name, homepage = excluded.homepage,
-           feed_url = excluded.feed_url, region = excluded.region`,
+           feed_url = excluded.feed_url, region = excluded.region, category = excluded.category`,
       )
-      .bind(outlet.id, outlet.name, outlet.homepage, outlet.feedUrl, outlet.region),
+      .bind(outlet.id, outlet.name, outlet.homepage, outlet.feedUrl, outlet.region, outlet.category),
   );
   await db.batch(statements);
 }
@@ -21,11 +21,16 @@ export async function articleExists(db: D1Database, id: string): Promise<boolean
   return row !== null;
 }
 
-export async function getCandidateTopics(db: D1Database, now: Date): Promise<CandidateTopic[]> {
+/** Candidate topics are scoped to one category — a national Indian story can never match against an unrelated international one. */
+export async function getCandidateTopics(
+  db: D1Database,
+  category: NewsCategory,
+  now: Date,
+): Promise<CandidateTopic[]> {
   const cutoff = new Date(now.getTime() - TOPIC_WINDOW_DAYS * 86_400_000).toISOString();
   const { results } = await db
-    .prepare('SELECT id, centroid_json FROM topics WHERE last_updated_at >= ?')
-    .bind(cutoff)
+    .prepare('SELECT id, centroid_json FROM topics WHERE category = ? AND last_updated_at >= ?')
+    .bind(category, cutoff)
     .all<{ id: string; centroid_json: string }>();
   return results.map((row) => ({ id: row.id, centroid: JSON.parse(row.centroid_json) as TermVector }));
 }
@@ -54,13 +59,14 @@ export async function createTopic(
   entryId: string,
   article: NewArticle,
   vector: TermVector,
+  category: NewsCategory,
 ): Promise<void> {
   await db.batch([
     db
       .prepare(
-        'INSERT INTO topics (id, title, first_seen_at, last_updated_at, centroid_json) VALUES (?, ?, ?, ?, ?)',
+        'INSERT INTO topics (id, title, category, first_seen_at, last_updated_at, centroid_json) VALUES (?, ?, ?, ?, ?, ?)',
       )
-      .bind(topicId, article.title, article.publishedAt, article.publishedAt, JSON.stringify(vector)),
+      .bind(topicId, article.title, category, article.publishedAt, article.publishedAt, JSON.stringify(vector)),
     db
       .prepare(
         'INSERT INTO thread_entries (id, topic_id, occurred_at, headline, vector_json) VALUES (?, ?, ?, ?, ?)',

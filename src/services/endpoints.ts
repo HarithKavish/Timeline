@@ -54,6 +54,9 @@ export const NEWS_API_BASE: string =
   import.meta.env.VITE_NEWS_API_BASE ?? 'http://localhost:8787';
 
 export const newsEndpoints = {
+  /** GET {NEWS_API_BASE}/topics/by-category?limit=… → CategorizedTopics */
+  newsCategorized: (limit: number) => `${NEWS_API_BASE}/topics/by-category?limit=${limit}`,
+
   /** GET {NEWS_API_BASE}/topics?… → NewsTimelineResponse */
   newsTopics: (search: string) => `${NEWS_API_BASE}/topics${search ? `?${search}` : ''}`,
 

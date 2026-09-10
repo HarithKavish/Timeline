@@ -163,15 +163,35 @@ untouched, so the chronology keeps its alignment and density.
 ## News
 
 The one domain in this build backed by something real instead of `src/data/mock`: a Cloudflare
-Worker + D1 pipeline (`workers/news/`) that ingests five outlets' own RSS feeds every 5 minutes,
-dedupes and clusters what it finds, and serves the result over a small JSON API that
-`src/services/newsService.ts` calls with a plain `fetch` — the same service-boundary pattern the
-Music domain is staged for, just implemented now instead of later.
+Worker + D1 pipeline (`workers/news/`) that ingests RSS feeds every 5 minutes across four
+geographic tiers, dedupes and clusters what it finds, and serves the result over a small JSON API
+that `src/services/newsService.ts` calls with a plain `fetch` — the same service-boundary pattern
+the Music domain is staged for, just implemented now instead of later.
 
-**Sources** — BBC News, NPR, Al Jazeera, The Guardian, PBS NewsHour. All five publish free,
-official RSS directly; none require a key. Reuters and AP no longer offer free direct RSS
-(Reuters dropped theirs in 2020) and are deliberately not replaced with a Google News scrape,
-which would be aggregator content wearing a publisher's name.
+**Four tiers** — the News homepage (`/news`) shows the latest 3 topics in each, newest first, not
+a search box first:
+
+- **International** (excludes India) — BBC News, NPR, Al Jazeera, The Guardian, PBS NewsHour.
+  Free, official, direct publisher RSS; none require a key. Reuters and AP no longer offer free
+  direct RSS (Reuters dropped theirs in 2020) and are deliberately not replaced with a Google
+  News scrape, which would be aggregator content wearing a publisher's name.
+- **National** (India) — Times of India.
+- **State** (Tamil Nadu) — Times of India (Chennai edition), The New Indian Express.
+- **City** (Rajapalayam) — **currently empty.** No outlet publishes a dedicated feed for a town
+  this size, so a Google News search feed (English and Tamil) is the only real free source of
+  Rajapalayam-specific coverage — but Google returns HTTP 503 specifically to this worker's
+  Cloudflare network range (confirmed: 200 from an ordinary connection, 503 from here, across
+  multiple cron cycles). The News homepage says this plainly in the City section rather than
+  showing a misleadingly generic empty state.
+
+**The Hindu is deliberately not used**, despite being the obvious choice for National and State:
+its feeds are real and correctly formatted but return HTTP 403 to this same Cloudflare network
+range — verified the identical way. This is a real constraint of running ingestion from
+Cloudflare Workers specifically, not a code bug; see `workers/news/README.md` for the full
+picture and what fixing City would actually require.
+
+Clustering is scoped per category, so stories from different tiers never merge into each other
+just because they share vocabulary — see `workers/news/README.md`.
 
 **Topics and threads** — a *topic* is a cluster of articles judged to report the same real-world
 story; its *thread* is the chronological list of distinct developments within it, and each

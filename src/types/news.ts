@@ -8,11 +8,29 @@
 
 export type NewsOutletId = string;
 
+/**
+ * Geographic scope. International excludes the home nation (India);
+ * National/State/City narrow from there (India / Tamil Nadu / Rajapalayam).
+ * Every article and topic inherits its category from the outlet that
+ * produced it — clustering never crosses categories.
+ */
+export type NewsCategory = 'international' | 'national' | 'state' | 'city';
+
+export const NEWS_CATEGORIES: NewsCategory[] = ['international', 'national', 'state', 'city'];
+
+export const NEWS_CATEGORY_LABEL: Record<NewsCategory, string> = {
+  international: 'International',
+  national: 'National',
+  state: 'State',
+  city: 'City',
+};
+
 export interface NewsOutlet {
   id: NewsOutletId;
   name: string;
   homepage: string;
   region: string;
+  category: NewsCategory;
 }
 
 /** One ingested feed item, after dedup — a single outlet's report of one development. */
@@ -45,6 +63,7 @@ export type NewsTopicStatus = 'developing' | 'settled';
 export interface NewsTopic {
   id: string;
   title: string;
+  category: NewsCategory;
   firstSeenAt: string;
   lastUpdatedAt: string;
   outletCount: number;
@@ -60,6 +79,7 @@ export interface NewsTopicDetail extends NewsTopic {
 
 export interface NewsTimelineQuery {
   q?: string;
+  category?: NewsCategory;
   outletId?: NewsOutletId;
   status?: NewsTopicStatus;
   from?: string;
@@ -76,3 +96,6 @@ export interface NewsTimelineResponse {
   limit: number;
   outlets: NewsOutlet[];
 }
+
+/** The category-first homepage view: the latest N topics per category, newest first. */
+export type CategorizedTopics = Record<NewsCategory, NewsTopic[]>;

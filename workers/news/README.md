@@ -1,9 +1,9 @@
 # Timeline News — ingestion worker
 
 A Cloudflare Worker that is the *only* real (non-mock) backend in this
-repository. On a Cron Trigger it pulls five trusted, free, directly-published
-RSS feeds, dedupes and clusters what it finds into **topics** (the same
-real-world story) made of chronological **thread entries** (the distinct
+repository. On a Cron Trigger it pulls trusted, free RSS feeds across four
+geographic tiers, dedupes and clusters what it finds into **topics** (the
+same real-world story) made of chronological **thread entries** (the distinct
 developments within it, each corroborated by whichever outlets reported it),
 and stores the result in D1. A second entry point serves that data as a small
 read-only JSON API.
@@ -14,20 +14,61 @@ clustering algorithm write-up.
 
 ## Sources
 
-| Outlet | Feed |
-|---|---|
-| BBC News (World) | `https://feeds.bbci.co.uk/news/world/rss.xml` |
-| NPR | `https://feeds.npr.org/1001/rss.xml` |
-| Al Jazeera | `https://www.aljazeera.com/xml/rss/all.xml` |
-| The Guardian (World) | `https://www.theguardian.com/world/rss` |
-| PBS NewsHour | `https://www.pbs.org/newshour/feeds/rss/headlines` |
+Four tiers, each a `category` on the outlet (`src/outlets.ts`) that every
+article and topic it produces inherits — clustering is scoped per category,
+so a national Indian story can never merge with an unrelated international
+one just because they share vocabulary.
 
-All five are free, official, direct publisher feeds — no API key, no
-aggregator proxy. Reuters and AP no longer publish free direct RSS (Reuters
-dropped theirs in 2020) and are deliberately not substituted with a Google
-News scrape, which would be aggregator content wearing a publisher's name.
-Add more outlets by appending to `src/outlets.ts` — nothing else needs to
-change; ingestion, storage and the API are all outlet-count-agnostic.
+| Category | Outlet | Feed |
+|---|---|---|
+| International (excludes India) | BBC News (World) | `https://feeds.bbci.co.uk/news/world/rss.xml` |
+| International | NPR | `https://feeds.npr.org/1001/rss.xml` |
+| International | Al Jazeera | `https://www.aljazeera.com/xml/rss/all.xml` |
+| International | The Guardian (World) | `https://www.theguardian.com/world/rss` |
+| International | PBS NewsHour | `https://www.pbs.org/newshour/feeds/rss/headlines` |
+| National (India) | Times of India | `https://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms` |
+| State (Tamil Nadu) | Times of India (Chennai) | `https://timesofindia.indiatimes.com/rssfeeds/2950623.cms` |
+| State (Tamil Nadu) | The New Indian Express | `https://www.newindianexpress.com/states/tamil-nadu/rssfeed/?id=170&getXmlFeed=true` |
+| City (Rajapalayam) | Google News search, English | `https://news.google.com/rss/search?q=Rajapalayam&hl=en-IN&gl=IN&ceid=IN:en` |
+| City (Rajapalayam) | Google News search, Tamil | `https://news.google.com/rss/search?q=%E0%AE%B0%E0%AE%BE%E0%AE%9C%E0%AE%AA%E0%AE%BE%E0%AE%B3%E0%AF%88%E0%AE%AF%E0%AE%AE%E0%AF%8D&hl=ta-IN&gl=IN&ceid=IN:ta` |
+
+The International tier is free, official, direct publisher feeds — no API
+key, no aggregator proxy. Reuters and AP no longer publish free direct RSS
+(Reuters dropped theirs in 2020) and are deliberately not substituted with a
+Google News scrape, which would be aggregator content wearing a publisher's
+name. National and State are also direct publisher feeds.
+
+**The Hindu is not used, despite being the obvious first choice for National
+and State.** Its feeds are real, correctly formatted, and were verified
+directly (`https://www.thehindu.com/news/national/feeder/default.rss` and
+the `/tamil-nadu/` equivalent both return proper RSS when fetched normally)
+— but they return HTTP 403 specifically to requests from this worker's
+Cloudflare network range, confirmed by sending the identical request with
+the identical User-Agent from an ordinary connection and getting 200. Times
+of India and The New Indian Express don't block that range, so they carry
+National and State instead.
+
+**City currently has no working source, for the same reason.** No outlet
+publishes a dedicated feed for a town the size of Rajapalayam, so a Google
+News search feed is the only real free source of Rajapalayam-specific
+coverage — but `news.google.com/rss/search` returns HTTP 503 to this
+worker's Cloudflare network range too (same confirmation: 200 from an
+ordinary connection, 503 from here, reproduced across multiple cron cycles).
+The outlets stay defined in `src/outlets.ts`, honestly labelled, in case a
+future fix changes this (a different execution environment for just these
+feeds; see the open question in the root README's News section) — right now
+they contribute nothing, and the City section says so rather than showing a
+plausible-looking empty state.
+
+Tamil-language text (State and City tiers) is what motivated the tokenizer's
+Unicode fix in `src/text.ts` — the original ASCII-only filter would have
+reduced every Tamil headline to an empty vector. The capitalised-word entity
+heuristic is still Latin-script-only and simply doesn't fire for Tamil text;
+plain-term overlap still provides matching signal.
+
+Add more outlets by appending to `src/outlets.ts` with a `category` —
+nothing else needs to change; ingestion, storage and the API are all
+outlet-count- and category-agnostic.
 
 ## One-time setup
 
@@ -41,6 +82,13 @@ npm run db:create
 
 npm run db:apply           # local D1, for `wrangler dev`
 npm run db:apply:remote    # remote D1, for the deployed worker
+```
+
+Upgrading a database created before the geographic-category tier existed?
+Apply the migration once, in addition to (not instead of) `schema.sql`:
+
+```bash
+npx wrangler d1 execute timeline-news --remote --file=./migrations/0001_add_category.sql
 ```
 
 ## Deploy
@@ -65,7 +113,8 @@ npx wrangler dev --test-scheduled   # then curl the printed /__scheduled URL to 
 
 ## API
 
-- `GET /topics?q=&outletId=&status=developing|settled&sort=newest|oldest&offset=&limit=`
+- `GET /topics/by-category?limit=` — the category-first homepage view: the latest `limit` (default 3) topics in each of international/national/state/city, newest first
+- `GET /topics?q=&category=&outletId=&status=developing|settled&sort=newest|oldest&offset=&limit=`
 - `GET /topics/:id`
 - `GET /outlets`
 

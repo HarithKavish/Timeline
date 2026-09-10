@@ -1,4 +1,5 @@
 import type { NewsFilterController } from '../../hooks/useNewsFilters';
+import { NEWS_CATEGORIES, NEWS_CATEGORY_LABEL } from '../../types/news';
 import type { NewsOutlet } from '../../types/news';
 import { Button } from '../ui/Primitives';
 import './news.css';
@@ -10,7 +11,10 @@ export function NewsFilters({
   controller: NewsFilterController;
   outlets: NewsOutlet[];
 }) {
-  const { state, setQ, setOutlet, setStatus, setSort } = controller;
+  const { state, setQ, setCategory, setOutlet, setStatus, setSort } = controller;
+  const outletsInScope = state.category
+    ? outlets.filter((outlet) => outlet.category === state.category)
+    : outlets;
 
   return (
     <div className="news-filters">
@@ -22,6 +26,21 @@ export function NewsFilters({
         onChange={(event) => setQ(event.target.value)}
         aria-label="Search news topics"
       />
+
+      <div className="news-filters__group" role="group" aria-label="Category">
+        <Button variant={state.category === null ? 'primary' : 'ghost'} onClick={() => setCategory(null)}>
+          All categories
+        </Button>
+        {NEWS_CATEGORIES.map((category) => (
+          <Button
+            key={category}
+            variant={state.category === category ? 'primary' : 'ghost'}
+            onClick={() => setCategory(state.category === category ? null : category)}
+          >
+            {NEWS_CATEGORY_LABEL[category]}
+          </Button>
+        ))}
+      </div>
 
       <div className="news-filters__group" role="group" aria-label="Status">
         <Button variant={state.status === null ? 'primary' : 'ghost'} onClick={() => setStatus(null)}>
@@ -42,7 +61,7 @@ export function NewsFilters({
         <Button variant={state.outletId === null ? 'primary' : 'ghost'} onClick={() => setOutlet(null)}>
           All outlets
         </Button>
-        {outlets.map((outlet) => (
+        {outletsInScope.map((outlet) => (
           <Button
             key={outlet.id}
             variant={state.outletId === outlet.id ? 'primary' : 'ghost'}
