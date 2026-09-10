@@ -22,7 +22,7 @@ export type Embedding = number[];
  * Indian story can never merge with an unrelated international one just
  * because they share vocabulary.
  */
-export type NewsCategory = 'international' | 'national' | 'state' | 'city';
+export type NewsCategory = 'international' | 'national' | 'state' | 'district' | 'city';
 
 /* ---- Public API response shapes — mirrored by src/types/news.ts in the frontend ---- */
 

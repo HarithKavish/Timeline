@@ -10,18 +10,20 @@ export type NewsOutletId = string;
 
 /**
  * Geographic scope. International excludes the home nation (India);
- * National/State/City narrow from there (India / Tamil Nadu / Rajapalayam).
- * Every article and topic inherits its category from the outlet that
- * produced it — clustering never crosses categories.
+ * National/State/District/City narrow from there (India / Tamil Nadu /
+ * Virudhunagar district / Rajapalayam specifically). Every article and
+ * topic inherits its category from the outlet that produced it —
+ * clustering never crosses categories.
  */
-export type NewsCategory = 'international' | 'national' | 'state' | 'city';
+export type NewsCategory = 'international' | 'national' | 'state' | 'district' | 'city';
 
-export const NEWS_CATEGORIES: NewsCategory[] = ['international', 'national', 'state', 'city'];
+export const NEWS_CATEGORIES: NewsCategory[] = ['international', 'national', 'state', 'district', 'city'];
 
 export const NEWS_CATEGORY_LABEL: Record<NewsCategory, string> = {
   international: 'International',
   national: 'National',
   state: 'State',
+  district: 'District',
   city: 'City',
 };
 

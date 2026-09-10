@@ -10,7 +10,7 @@ export interface Outlet {
 }
 
 /**
- * Four geographic tiers, each sourced the most honestly available way:
+ * Five geographic tiers, each sourced the most honestly available way:
  *
  * - **International** (excludes the home nation, India) — five trusted,
  *   free, directly-published outlet feeds. No API key, no aggregator proxy.
@@ -26,15 +26,23 @@ export interface Outlet {
  *   residential IP), so they can never actually be ingested from this
  *   Worker. Times of India and The New Indian Express do not block that
  *   range and are used instead.
- * - **City** (Rajapalayam, Tamil Nadu) — no outlet publishes a dedicated
- *   feed for a town this size, so there is no direct-publisher option here
- *   at all. A Google News search feed is the only real free source of
- *   Rajapalayam-specific coverage; it is noisier than the other tiers
- *   (product listings and unrelated pages can surface alongside genuine
- *   local news) and is used only because the alternative is no city tier.
- *   A Tamil-language query is included alongside the English one, since
- *   hyperlocal coverage of a Tamil-speaking town is more likely to exist
- *   in the Tamil press.
+ * - **District** (Virudhunagar) and **City** (Rajapalayam within it) —
+ *   no outlet publishes a dedicated feed at either granularity, so there is
+ *   no direct-publisher option here at all. A Google News search feed is
+ *   the only real free source of coverage this local; it is noisier than
+ *   the other tiers (product listings and unrelated pages can surface
+ *   alongside genuine local news) and is used only because the alternative
+ *   is no coverage at all. District searches across the district's main
+ *   towns (Virudhunagar, Rajapalayam, Sivakasi, Srivilliputhur,
+ *   Aruppukkottai, Sattur) rather than just the district's name, since most
+ *   local reporting names the specific town, not the district. A
+ *   Tamil-language query is included alongside the English one for both
+ *   tiers, since hyperlocal coverage of Tamil-speaking towns is more likely
+ *   to exist in the Tamil press. Both are also the two tiers most exposed
+ *   to the same Cloudflare-egress block described above for The Hindu —
+ *   `news.google.com/rss/search` has returned HTTP 503 to this Worker's
+ *   network range in testing; see workers/news/README.md for the current
+ *   status.
  */
 export const OUTLETS: Outlet[] = [
   {
@@ -104,6 +112,26 @@ export const OUTLETS: Outlet[] = [
     feedUrl: 'https://www.newindianexpress.com/states/tamil-nadu/rssfeed/?id=170&getXmlFeed=true',
     region: 'Tamil Nadu',
     category: 'state',
+  },
+  {
+    id: 'virudhunagar-district-en',
+    name: 'Google News (Virudhunagar district)',
+    homepage:
+      'https://news.google.com/search?q=Virudhunagar%20OR%20Rajapalayam%20OR%20Sivakasi%20OR%20Srivilliputhur%20OR%20Aruppukkottai%20OR%20Sattur',
+    feedUrl:
+      'https://news.google.com/rss/search?q=Virudhunagar%20OR%20Rajapalayam%20OR%20Sivakasi%20OR%20Srivilliputhur%20OR%20Aruppukkottai%20OR%20Sattur&hl=en-IN&gl=IN&ceid=IN:en',
+    region: 'Virudhunagar district',
+    category: 'district',
+  },
+  {
+    id: 'virudhunagar-district-ta',
+    name: 'Google News (விருதுநகர் மாவட்டம்)',
+    homepage:
+      'https://news.google.com/search?q=%E0%AE%B5%E0%AE%BF%E0%AE%B0%E0%AF%81%E0%AE%A4%E0%AF%81%E0%AE%A8%E0%AE%95%E0%AE%B0%E0%AF%8D%20OR%20%E0%AE%B0%E0%AE%BE%E0%AE%9C%E0%AE%AA%E0%AE%BE%E0%AE%B3%E0%AF%88%E0%AE%AF%E0%AE%AE%E0%AF%8D%20OR%20%E0%AE%9A%E0%AE%BF%E0%AE%B5%E0%AE%95%E0%AE%BE%E0%AE%9A%E0%AE%BF%20OR%20%E0%AE%B8%E0%AF%8D%E0%AE%B0%E0%AF%80%E0%AE%B5%E0%AE%BF%E0%AE%B2%E0%AF%8D%E0%AE%B2%E0%AE%BF%E0%AE%AA%E0%AF%81%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AF%82%E0%AE%B0%E0%AF%8D%20OR%20%E0%AE%85%E0%AE%B0%E0%AF%81%E0%AE%AA%E0%AF%8D%E0%AE%AA%E0%AF%81%E0%AE%95%E0%AF%8D%E0%AE%95%E0%AF%8B%E0%AE%9F%E0%AF%8D%E0%AE%9F%E0%AF%88%20OR%20%E0%AE%9A%E0%AE%BE%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AF%82%E0%AE%B0%E0%AF%8D',
+    feedUrl:
+      'https://news.google.com/rss/search?q=%E0%AE%B5%E0%AE%BF%E0%AE%B0%E0%AF%81%E0%AE%A4%E0%AF%81%E0%AE%A8%E0%AE%95%E0%AE%B0%E0%AF%8D%20OR%20%E0%AE%B0%E0%AE%BE%E0%AE%9C%E0%AE%AA%E0%AE%BE%E0%AE%B3%E0%AF%88%E0%AE%AF%E0%AE%AE%E0%AF%8D%20OR%20%E0%AE%9A%E0%AE%BF%E0%AE%B5%E0%AE%95%E0%AE%BE%E0%AE%9A%E0%AE%BF%20OR%20%E0%AE%B8%E0%AF%8D%E0%AE%B0%E0%AF%80%E0%AE%B5%E0%AE%BF%E0%AE%B2%E0%AF%8D%E0%AE%B2%E0%AE%BF%E0%AE%AA%E0%AF%81%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AF%82%E0%AE%B0%E0%AF%8D%20OR%20%E0%AE%85%E0%AE%B0%E0%AF%81%E0%AE%AA%E0%AF%8D%E0%AE%AA%E0%AF%81%E0%AE%95%E0%AF%8D%E0%AE%95%E0%AF%8B%E0%AE%9F%E0%AF%8D%E0%AE%9F%E0%AF%88%20OR%20%E0%AE%9A%E0%AE%BE%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AF%82%E0%AE%B0%E0%AF%8D&hl=ta-IN&gl=IN&ceid=IN:ta',
+    region: 'Virudhunagar district',
+    category: 'district',
   },
   {
     id: 'rajapalayam-en',

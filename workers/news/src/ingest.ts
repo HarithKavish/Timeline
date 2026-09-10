@@ -25,7 +25,7 @@ const FETCH_TIMEOUT_MS = 10_000;
  * order puts it last, so a mid-cycle cutoff costs International coverage
  * before it costs the smaller, easily-starved tiers.
  */
-const CATEGORY_PRIORITY: NewsCategory[] = ['national', 'state', 'city', 'international'];
+const CATEGORY_PRIORITY: NewsCategory[] = ['national', 'state', 'district', 'city', 'international'];
 
 export async function runIngest(env: Env): Promise<void> {
   await ensureOutlets(env.DB);

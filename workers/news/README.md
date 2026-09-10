@@ -1,7 +1,7 @@
 # Timeline News — ingestion worker
 
 A Cloudflare Worker that is the *only* real (non-mock) backend in this
-repository. On a Cron Trigger it pulls trusted, free RSS feeds across four
+repository. On a Cron Trigger it pulls trusted, free RSS feeds across five
 geographic tiers, dedupes and clusters what it finds into **topics** (the
 same real-world story) made of chronological **thread entries** (the distinct
 developments within it, each corroborated by whichever outlets reported it),
@@ -14,7 +14,7 @@ clustering algorithm write-up.
 
 ## Sources
 
-Four tiers, each a `category` on the outlet (`src/outlets.ts`) that every
+Five tiers, each a `category` on the outlet (`src/outlets.ts`) that every
 article and topic it produces inherits — clustering is scoped per category,
 so a national Indian story can never merge with an unrelated international
 one just because they share vocabulary.
@@ -29,8 +29,20 @@ one just because they share vocabulary.
 | National (India) | Times of India | `https://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms` |
 | State (Tamil Nadu) | Times of India (Chennai) | `https://timesofindia.indiatimes.com/rssfeeds/2950623.cms` |
 | State (Tamil Nadu) | The New Indian Express | `https://www.newindianexpress.com/states/tamil-nadu/rssfeed/?id=170&getXmlFeed=true` |
+| District (Virudhunagar) | Google News search, English | `https://news.google.com/rss/search?q=Virudhunagar+OR+Rajapalayam+OR+Sivakasi+OR+Srivilliputhur+OR+Aruppukkottai+OR+Sattur&hl=en-IN&gl=IN&ceid=IN:en` |
+| District (Virudhunagar) | Google News search, Tamil | searches the same six towns' Tamil names (see `src/outlets.ts`) |
 | City (Rajapalayam) | Google News search, English | `https://news.google.com/rss/search?q=Rajapalayam&hl=en-IN&gl=IN&ceid=IN:en` |
 | City (Rajapalayam) | Google News search, Tamil | `https://news.google.com/rss/search?q=%E0%AE%B0%E0%AE%BE%E0%AE%9C%E0%AE%AA%E0%AE%BE%E0%AE%B3%E0%AF%88%E0%AE%AF%E0%AE%AE%E0%AF%8D&hl=ta-IN&gl=IN&ceid=IN:ta` |
+
+District searches across the district's main towns by name (Virudhunagar,
+Rajapalayam, Sivakasi, Srivilliputhur, Aruppukkottai, Sattur) rather than
+searching "Virudhunagar district" as a phrase — most local reporting names
+the specific town, not the district, so a phrase search would miss most of
+the real coverage. Verified directly (from an ordinary connection, not this
+worker) before building: real results included a fireworks-factory accident
+in Sattur, a weavers' protest, new district-collector appointments, and a
+Tamil-press HPV vaccination drive story — alongside the same kind of noise
+(product listings, price pages) City already has.
 
 The International tier is free, official, direct publisher feeds — no API
 key, no aggregator proxy. Reuters and AP no longer publish free direct RSS
@@ -48,19 +60,20 @@ the identical User-Agent from an ordinary connection and getting 200. Times
 of India and The New Indian Express don't block that range, so they carry
 National and State instead.
 
-**City currently has no working source, for the same reason.** No outlet
-publishes a dedicated feed for a town the size of Rajapalayam, so a Google
-News search feed is the only real free source of Rajapalayam-specific
-coverage — but `news.google.com/rss/search` returns HTTP 503 to this
-worker's Cloudflare network range too (same confirmation: 200 from an
-ordinary connection, 503 from here, reproduced across multiple cron cycles).
-The outlets stay defined in `src/outlets.ts`, honestly labelled, in case a
-future fix changes this (a different execution environment for just these
-feeds; see the open question in the root README's News section) — right now
-they contribute nothing, and the City section says so rather than showing a
+**District and City currently have no working source, for the same
+reason.** Neither Virudhunagar district nor Rajapalayam has a dedicated
+publisher feed, so Google News search is the only real free source for
+either — but `news.google.com/rss/search` returns HTTP 503 to this worker's
+Cloudflare network range too (same confirmation as The Hindu: 200 from an
+ordinary connection, 503 from here, reproduced across multiple cron cycles
+for all four of these feeds). The outlets stay defined in `src/outlets.ts`,
+honestly labelled, in case a future fix changes this (a different execution
+environment for just these feeds; see the open question in the root
+README's News section) — right now they contribute nothing, and both
+sections say so on the News homepage rather than showing a
 plausible-looking empty state.
 
-Tamil-language text (State and City tiers) is part of why clustering moved
+Tamil-language text (State, District and City tiers) is part of why clustering moved
 to `bge-m3` embeddings (see below) rather than staying on the earlier
 hand-built term vectors — `bge-m3` is multilingual, so Tamil and English
 headlines share one real semantic space instead of the Tamil half being

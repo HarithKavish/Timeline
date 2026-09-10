@@ -13,7 +13,7 @@ import type {
   TopicStatus,
 } from './types';
 
-const CATEGORIES: NewsCategory[] = ['international', 'national', 'state', 'city'];
+const CATEGORIES: NewsCategory[] = ['international', 'national', 'state', 'district', 'city'];
 
 const ALLOWED_ORIGINS = new Set([
   'https://timeline.harithkavish.com',
