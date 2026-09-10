@@ -17,6 +17,22 @@ export const DUPLICATE_THRESHOLD = 0.5;
 export const DEVELOPING_WINDOW_HOURS = 48;
 
 /**
+ * Real production data surfaced a second chaining failure, this time
+ * *within* a topic: four articles about a Trump/Iran/midterms story — one
+ * literally restating the lead headline, but two others on genuinely
+ * different specific angles ("Iran war looms over Trump at Republican
+ * midterm convention" vs the lead claim) — all landed in one thread entry.
+ * The reason is structural: every article in a topic already shares the
+ * topic's dominant entities (here, Trump, Iran), so full-vector cosine
+ * between any two of its articles is inflated regardless of whether they're
+ * actually the same specific development. DUPLICATE_PLAIN_THRESHOLD is the
+ * same fix as MIN_PLAIN_OVERLAP applied one level down: corroboration
+ * requires non-entity vocabulary to actually overlap too, not just the
+ * entities every article in the topic already shares.
+ */
+export const DUPLICATE_PLAIN_THRESHOLD = 0.15;
+
+/**
  * A frequently-mentioned name ("Trump", "Israel") shared between two
  * headlines is not, by itself, evidence they're the same story — real
  * testing surfaced exactly this: five unrelated Trump stories chained into
@@ -70,11 +86,16 @@ export function pickEntry(
   vector: TermVector,
   candidates: CandidateEntry[],
 ): { entryId: string; isDuplicate: boolean } | null {
-  let best: { entryId: string; score: number } | null = null;
+  const plainVector = withoutEntities(vector);
+  let best: { entryId: string; score: number; plainScore: number } | null = null;
   for (const candidate of candidates) {
     const score = cosineSimilarity(vector, candidate.vector);
-    if (!best || score > best.score) best = { entryId: candidate.id, score };
+    if (!best || score > best.score) {
+      const plainScore = cosineSimilarity(plainVector, withoutEntities(candidate.vector));
+      best = { entryId: candidate.id, score, plainScore };
+    }
   }
   if (!best) return null;
-  return { entryId: best.entryId, isDuplicate: best.score >= DUPLICATE_THRESHOLD };
+  const isDuplicate = best.score >= DUPLICATE_THRESHOLD && best.plainScore >= DUPLICATE_PLAIN_THRESHOLD;
+  return { entryId: best.entryId, isDuplicate };
 }
