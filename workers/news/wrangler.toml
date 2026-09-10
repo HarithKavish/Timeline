@@ -16,6 +16,9 @@ database_name = "timeline-news"
 # Fill in after running `npm run db:create` — wrangler prints the id.
 database_id = "96c43e8a-5bd3-41de-8c94-04e2facc7345"
 
+[ai]
+binding = "AI"
+
 # Uncomment and point at a subdomain once the worker has a stable name, so the
 # frontend's VITE_NEWS_API_BASE never has to change across redeploys.
 # [[routes]]

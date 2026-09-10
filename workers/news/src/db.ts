@@ -1,6 +1,6 @@
-import { weightedCentroid } from './text';
+import { weightedCentroid } from './embeddings';
 import { TOPIC_WINDOW_DAYS, type CandidateEntry, type CandidateTopic } from './cluster';
-import type { NewsCategory, TermVector } from './types';
+import type { Embedding, NewsCategory } from './types';
 import { OUTLETS } from './outlets';
 
 export async function ensureOutlets(db: D1Database): Promise<void> {
@@ -29,18 +29,19 @@ export async function getCandidateTopics(
 ): Promise<CandidateTopic[]> {
   const cutoff = new Date(now.getTime() - TOPIC_WINDOW_DAYS * 86_400_000).toISOString();
   const { results } = await db
-    .prepare('SELECT id, centroid_json FROM topics WHERE category = ? AND last_updated_at >= ?')
+    .prepare('SELECT id, title, centroid_json FROM topics WHERE category = ? AND last_updated_at >= ?')
     .bind(category, cutoff)
-    .all<{ id: string; centroid_json: string }>();
-  return results.map((row) => ({ id: row.id, centroid: JSON.parse(row.centroid_json) as TermVector }));
+    .all<{ id: string; title: string; centroid_json: string }>();
+  return results.map((row) => ({ id: row.id, title: row.title, centroid: JSON.parse(row.centroid_json) as Embedding }));
 }
 
+/** Includes each entry's headline — the narrative-generation prompt needs the prior log, not just the vectors. */
 export async function getThreadEntries(db: D1Database, topicId: string): Promise<CandidateEntry[]> {
   const { results } = await db
-    .prepare('SELECT id, vector_json FROM thread_entries WHERE topic_id = ?')
+    .prepare('SELECT id, headline, vector_json FROM thread_entries WHERE topic_id = ? ORDER BY occurred_at ASC')
     .bind(topicId)
-    .all<{ id: string; vector_json: string }>();
-  return results.map((row) => ({ id: row.id, vector: JSON.parse(row.vector_json) as TermVector }));
+    .all<{ id: string; headline: string; vector_json: string }>();
+  return results.map((row) => ({ id: row.id, headline: row.headline, embedding: JSON.parse(row.vector_json) as Embedding }));
 }
 
 export interface NewArticle {
@@ -53,12 +54,14 @@ export interface NewArticle {
   summary: string | null;
 }
 
+/** `headline` is the narrative text for this entry (LLM-authored, or the raw title on AI fallback) — distinct from `article.title`, which stays the real source headline. */
 export async function createTopic(
   db: D1Database,
   topicId: string,
   entryId: string,
   article: NewArticle,
-  vector: TermVector,
+  embedding: Embedding,
+  headline: string,
   category: NewsCategory,
 ): Promise<void> {
   await db.batch([
@@ -66,12 +69,12 @@ export async function createTopic(
       .prepare(
         'INSERT INTO topics (id, title, category, first_seen_at, last_updated_at, centroid_json) VALUES (?, ?, ?, ?, ?, ?)',
       )
-      .bind(topicId, article.title, category, article.publishedAt, article.publishedAt, JSON.stringify(vector)),
+      .bind(topicId, headline, category, article.publishedAt, article.publishedAt, JSON.stringify(embedding)),
     db
       .prepare(
         'INSERT INTO thread_entries (id, topic_id, occurred_at, headline, vector_json) VALUES (?, ?, ?, ?, ?)',
       )
-      .bind(entryId, topicId, article.publishedAt, article.title, JSON.stringify(vector)),
+      .bind(entryId, topicId, article.publishedAt, headline, JSON.stringify(embedding)),
     insertArticleStatement(db, article, entryId, topicId),
   ]);
 }
@@ -81,14 +84,15 @@ export async function addThreadEntry(
   topicId: string,
   entryId: string,
   article: NewArticle,
-  vector: TermVector,
+  embedding: Embedding,
+  headline: string,
 ): Promise<void> {
   await db.batch([
     db
       .prepare(
         'INSERT INTO thread_entries (id, topic_id, occurred_at, headline, vector_json) VALUES (?, ?, ?, ?, ?)',
       )
-      .bind(entryId, topicId, article.publishedAt, article.title, JSON.stringify(vector)),
+      .bind(entryId, topicId, article.publishedAt, headline, JSON.stringify(embedding)),
     insertArticleStatement(db, article, entryId, topicId),
   ]);
   await recomputeTopic(db, topicId);
@@ -137,7 +141,7 @@ async function recomputeTopic(db: D1Database, topicId: string): Promise<void> {
   const centroid = weightedCentroid(
     entries.results.map((row) => ({
       occurredAt: row.occurred_at,
-      vector: JSON.parse(row.vector_json) as TermVector,
+      embedding: JSON.parse(row.vector_json) as Embedding,
     })),
     Date.now(),
   );
