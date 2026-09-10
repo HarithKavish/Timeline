@@ -14,15 +14,21 @@ const CATEGORY_DESCRIPTION: Record<NewsCategory, string> = {
   international: 'Everywhere but home — five outlets, none of them Indian.',
   national: 'India.',
   state: 'Tamil Nadu.',
-  city: 'Rajapalayam.',
+  district: 'Virudhunagar — the whole district: its towns and villages, not just one city.',
+  city: 'Rajapalayam specifically.',
 };
 
-const CITY_BLOCKED_NOTE =
-  "Currently empty: the only free source for Rajapalayam-specific coverage is a Google News search feed, and Google returns 503 specifically to this worker's Cloudflare network range — the identical request succeeds from an ordinary connection. This is an infrastructure block, not a timing issue; refreshing won't fix it.";
+/** District and City both depend on a Google News search feed, which is blocked for this worker the same way — see workers/news/README.md. */
+const GOOGLE_BLOCKED_CATEGORIES = new Set<NewsCategory>(['district', 'city']);
+
+function blockedNote(category: NewsCategory): string {
+  const place = category === 'district' ? 'Virudhunagar district' : 'Rajapalayam';
+  return `Currently empty: the only free source for ${place}-specific coverage is a Google News search feed, and Google returns 503 specifically to this worker's Cloudflare network range — the identical request succeeds from an ordinary connection. This is an infrastructure block, not a timing issue; refreshing won't fix it.`;
+}
 
 const TOPICS_PER_CATEGORY = 3;
 
-/** The News homepage: four categories shown directly, latest topics first — no search box in the way. */
+/** The News homepage: five categories shown directly, latest topics first — no search box in the way. */
 export function NewsPage() {
   const outletsState = useQuery(getNewsOutlets, []);
   const categorizedState = useQuery(() => getNewsByCategory(TOPICS_PER_CATEGORY), []);
@@ -41,7 +47,7 @@ export function NewsPage() {
         <p className="eyebrow page-head__eyebrow">News · live</p>
         <h1 className="page-head__title display">The news timeline</h1>
         <p className="page-head__lede">
-          The latest {TOPICS_PER_CATEGORY} topics in each of four tiers, newest first — every
+          The latest {TOPICS_PER_CATEGORY} topics in each of five tiers, newest first — every
           topic a cluster of articles on the same real-world story, each with a chronological
           thread of the distinct developments in it, corroborated by whichever outlets reported
           them.
@@ -69,6 +75,7 @@ export function NewsPage() {
 }
 
 function CategorySection({ category, topics }: { category: NewsCategory; topics: NewsTopic[] }) {
+  const blocked = GOOGLE_BLOCKED_CATEGORIES.has(category);
   return (
     <Section
       eyebrow={CATEGORY_DESCRIPTION[category]}
@@ -80,8 +87,8 @@ function CategorySection({ category, topics }: { category: NewsCategory; topics:
       }
     >
       {topics.length === 0 ? (
-        <EmptyState title={category === 'city' ? 'No Rajapalayam coverage reachable right now' : 'Nothing ingested yet in this category'}>
-          {category === 'city' ? CITY_BLOCKED_NOTE : 'The pipeline polls every 5 minutes — check back shortly.'}
+        <EmptyState title={blocked ? 'No coverage reachable right now' : 'Nothing ingested yet in this category'}>
+          {blocked ? blockedNote(category) : 'The pipeline polls every 5 minutes — check back shortly.'}
         </EmptyState>
       ) : (
         <ul className="topic-list">
