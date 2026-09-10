@@ -13,25 +13,73 @@ import {
   getThreadEntries,
   type NewArticle,
 } from './db';
-import { OUTLETS } from './outlets';
-import type { Env, NewsCategory } from './types';
+import { OUTLETS, type Outlet } from './outlets';
+import type { Env, FeedItem, NewsCategory } from './types';
 
 const FETCH_TIMEOUT_MS = 10_000;
+
+/**
+ * International is the highest-volume tier (5 established Western
+ * newsrooms) and already has the deepest backlog, so it's the one that can
+ * best afford to lose a round to a tight subrequest budget. Processing
+ * order puts it last, so a mid-cycle cutoff costs International coverage
+ * before it costs the smaller, easily-starved tiers.
+ */
+const CATEGORY_PRIORITY: NewsCategory[] = ['national', 'state', 'city', 'international'];
 
 export async function runIngest(env: Env): Promise<void> {
   await ensureOutlets(env.DB);
 
+  const perOutlet: Array<{ outlet: Outlet; items: FeedItem[] }> = [];
   for (const outlet of OUTLETS) {
     try {
-      const items = await fetchOutlet(outlet.feedUrl);
-      for (const item of items) {
-        if (!item.link) continue;
-        await processItem(env, outlet.id, outlet.name, outlet.category, item);
-      }
+      const items = (await fetchOutlet(outlet.feedUrl)).filter((item) => item.link);
+      perOutlet.push({ outlet, items });
     } catch (error) {
       console.error(`[news-ingest] ${outlet.id} failed:`, error);
     }
   }
+  perOutlet.sort(
+    (a, b) => CATEGORY_PRIORITY.indexOf(a.outlet.category) - CATEGORY_PRIORITY.indexOf(b.outlet.category),
+  );
+
+  // Round-robin across outlets, not outlet-by-outlet: real production
+  // traffic hit the Workers free-plan subrequest budget (50/invocation)
+  // before every new article across 11 feeds could be processed, and
+  // outlet-by-outlet order (plus, initially, round-robin in the array's
+  // International-first order) meant National/State/City got a single item
+  // processed only after International had already taken its share, every
+  // single cycle (confirmed via wrangler tail: those three categories sat
+  // at zero topics for over an hour of real cron runs). The category sort
+  // above plus round-robin here means a budget cutoff costs the
+  // already-well-covered tier first, not the starved ones.
+  // Interleaving means a budget cutoff costs every category roughly the
+  // same instead of starving whichever tier is last.
+  const queue = interleave(
+    perOutlet.map(({ outlet, items }) => items.map((item) => ({ outlet, item }))),
+  );
+
+  for (const { outlet, item } of queue) {
+    try {
+      await processItem(env, outlet.id, outlet.name, outlet.category, item);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`[news-ingest] ${outlet.id} item failed:`, message);
+      if (message.includes('Too many subrequests')) break; // budget exhausted — remaining items retry next cycle
+    }
+  }
+}
+
+function interleave<T>(groups: T[][]): T[] {
+  const result: T[] = [];
+  const maxLen = groups.reduce((max, group) => Math.max(max, group.length), 0);
+  for (let i = 0; i < maxLen; i++) {
+    for (const group of groups) {
+      const value = group[i];
+      if (value !== undefined) result.push(value);
+    }
+  }
+  return result;
 }
 
 async function fetchOutlet(feedUrl: string) {
