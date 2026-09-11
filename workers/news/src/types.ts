@@ -39,6 +39,8 @@ export interface PublicArticle {
   outletId: string;
   outletName: string;
   title: string;
+  /** English translation of `title`, when the source outlet isn't English and translation succeeded. Frontend displays `titleEn ?? title`. */
+  titleEn: string | null;
   url: string;
   publishedAt: string;
   fetchedAt: string;

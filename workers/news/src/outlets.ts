@@ -7,6 +7,8 @@ export interface Outlet {
   feedUrl: string;
   region: string;
   category: NewsCategory;
+  /** Source language of this feed's own text. Drives auto-translation — see src/translate.ts. */
+  language: 'en' | 'ta';
 }
 
 /**
@@ -52,6 +54,7 @@ export const OUTLETS: Outlet[] = [
     feedUrl: 'https://feeds.bbci.co.uk/news/world/rss.xml',
     region: 'UK',
     category: 'international',
+    language: 'en',
   },
   {
     id: 'npr-news',
@@ -60,6 +63,7 @@ export const OUTLETS: Outlet[] = [
     feedUrl: 'https://feeds.npr.org/1001/rss.xml',
     region: 'US',
     category: 'international',
+    language: 'en',
   },
   {
     id: 'al-jazeera',
@@ -68,6 +72,7 @@ export const OUTLETS: Outlet[] = [
     feedUrl: 'https://www.aljazeera.com/xml/rss/all.xml',
     region: 'International',
     category: 'international',
+    language: 'en',
   },
   {
     id: 'guardian-world',
@@ -76,6 +81,7 @@ export const OUTLETS: Outlet[] = [
     feedUrl: 'https://www.theguardian.com/world/rss',
     region: 'UK',
     category: 'international',
+    language: 'en',
   },
   {
     id: 'pbs-newshour',
@@ -84,6 +90,7 @@ export const OUTLETS: Outlet[] = [
     feedUrl: 'https://www.pbs.org/newshour/feeds/rss/headlines',
     region: 'US',
     category: 'international',
+    language: 'en',
   },
   {
     // Verified directly against ToI's own RSS directory (timesofindia.indiatimes.com/rss.cms)
@@ -96,6 +103,7 @@ export const OUTLETS: Outlet[] = [
     feedUrl: 'https://timesofindia.indiatimes.com/rssfeeds/-2128936835.cms',
     region: 'India',
     category: 'national',
+    language: 'en',
   },
   {
     id: 'toi-chennai',
@@ -104,6 +112,7 @@ export const OUTLETS: Outlet[] = [
     feedUrl: 'https://timesofindia.indiatimes.com/rssfeeds/2950623.cms',
     region: 'Chennai',
     category: 'state',
+    language: 'en',
   },
   {
     id: 'nie-tamilnadu',
@@ -112,6 +121,7 @@ export const OUTLETS: Outlet[] = [
     feedUrl: 'https://www.newindianexpress.com/states/tamil-nadu/rssfeed/?id=170&getXmlFeed=true',
     region: 'Tamil Nadu',
     category: 'state',
+    language: 'en',
   },
   {
     id: 'virudhunagar-district-en',
@@ -122,6 +132,7 @@ export const OUTLETS: Outlet[] = [
       'https://news.google.com/rss/search?q=Virudhunagar%20OR%20Rajapalayam%20OR%20Sivakasi%20OR%20Srivilliputhur%20OR%20Aruppukkottai%20OR%20Sattur&hl=en-IN&gl=IN&ceid=IN:en',
     region: 'Virudhunagar district',
     category: 'district',
+    language: 'en',
   },
   {
     id: 'virudhunagar-district-ta',
@@ -132,6 +143,7 @@ export const OUTLETS: Outlet[] = [
       'https://news.google.com/rss/search?q=%E0%AE%B5%E0%AE%BF%E0%AE%B0%E0%AF%81%E0%AE%A4%E0%AF%81%E0%AE%A8%E0%AE%95%E0%AE%B0%E0%AF%8D%20OR%20%E0%AE%B0%E0%AE%BE%E0%AE%9C%E0%AE%AA%E0%AE%BE%E0%AE%B3%E0%AF%88%E0%AE%AF%E0%AE%AE%E0%AF%8D%20OR%20%E0%AE%9A%E0%AE%BF%E0%AE%B5%E0%AE%95%E0%AE%BE%E0%AE%9A%E0%AE%BF%20OR%20%E0%AE%B8%E0%AF%8D%E0%AE%B0%E0%AF%80%E0%AE%B5%E0%AE%BF%E0%AE%B2%E0%AF%8D%E0%AE%B2%E0%AE%BF%E0%AE%AA%E0%AF%81%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AF%82%E0%AE%B0%E0%AF%8D%20OR%20%E0%AE%85%E0%AE%B0%E0%AF%81%E0%AE%AA%E0%AF%8D%E0%AE%AA%E0%AF%81%E0%AE%95%E0%AF%8D%E0%AE%95%E0%AF%8B%E0%AE%9F%E0%AF%8D%E0%AE%9F%E0%AF%88%20OR%20%E0%AE%9A%E0%AE%BE%E0%AE%A4%E0%AF%8D%E0%AE%A4%E0%AF%82%E0%AE%B0%E0%AF%8D&hl=ta-IN&gl=IN&ceid=IN:ta',
     region: 'Virudhunagar district',
     category: 'district',
+    language: 'ta',
   },
   {
     id: 'rajapalayam-en',
@@ -140,6 +152,7 @@ export const OUTLETS: Outlet[] = [
     feedUrl: 'https://news.google.com/rss/search?q=Rajapalayam&hl=en-IN&gl=IN&ceid=IN:en',
     region: 'Rajapalayam',
     category: 'city',
+    language: 'en',
   },
   {
     id: 'rajapalayam-ta',
@@ -149,6 +162,7 @@ export const OUTLETS: Outlet[] = [
       'https://news.google.com/rss/search?q=%E0%AE%B0%E0%AE%BE%E0%AE%9C%E0%AE%AA%E0%AE%BE%E0%AE%B3%E0%AF%88%E0%AE%AF%E0%AE%AE%E0%AF%8D&hl=ta-IN&gl=IN&ceid=IN:ta',
     region: 'Rajapalayam',
     category: 'city',
+    language: 'ta',
   },
 ];
 

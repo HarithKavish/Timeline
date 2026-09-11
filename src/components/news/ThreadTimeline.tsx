@@ -32,8 +32,13 @@ function groupByOutlet(articles: NewsArticle[]): OutletGroup[] {
   return [...groups.values()];
 }
 
+/** The real source headline stays in `title`; `titleEn` (when present) is only what's shown. */
+function displayTitle(article: NewsArticle): string {
+  return article.titleEn ?? article.title;
+}
+
 function faviconTooltip(group: OutletGroup): string {
-  const first = group.articles[0]!.title;
+  const first = displayTitle(group.articles[0]!);
   return group.articles.length === 1
     ? `${group.outletName}: ${first}`
     : `${group.outletName} (${group.articles.length} articles): ${first}`;
@@ -118,7 +123,10 @@ function ThreadEntryRow({ entry, index }: { entry: NewsThreadEntry; index: numbe
                   rel="noopener noreferrer"
                 >
                   <span className="thread-article__outlet">{article.outletName}</span>
-                  <span className="thread-article__title">{article.title}</span>
+                  <span className="thread-article__title" title={article.titleEn ? article.title : undefined}>
+                    {displayTitle(article)}
+                  </span>
+                  {article.titleEn ? <span className="thread-article__translated subtle">translated</span> : null}
                 </a>
                 <span className="thread-article__time mono subtle">
                   {formatRelativeTime(article.publishedAt)}
