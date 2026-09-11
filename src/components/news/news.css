@@ -307,6 +307,16 @@
   font-size: var(--text-sm);
 }
 
+.thread-article__translated {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .thread-article__time {
   flex-shrink: 0;
   font-size: var(--text-2xs);

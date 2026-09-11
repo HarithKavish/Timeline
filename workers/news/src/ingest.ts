@@ -1,6 +1,7 @@
 import { parseFeed } from './feed';
 import { embedText } from './embeddings';
 import { generateNarrative } from './narrative';
+import { translateTitle } from './translate';
 import { pickTopic, pickEntry, DIRECT_DUPLICATE_THRESHOLD } from './cluster';
 import { canonicalizeUrl, hashId } from './ids';
 import {
@@ -61,7 +62,7 @@ export async function runIngest(env: Env): Promise<void> {
 
   for (const { outlet, item } of queue) {
     try {
-      await processItem(env, outlet.id, outlet.name, outlet.category, item);
+      await processItem(env, outlet, item);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.error(`[news-ingest] ${outlet.id} item failed:`, message);
@@ -105,9 +106,7 @@ async function fetchOutlet(feedUrl: string) {
 
 async function processItem(
   env: Env,
-  outletId: string,
-  outletName: string,
-  category: NewsCategory,
+  outlet: Outlet,
   item: { title: string; link: string; summary: string | null; publishedAt: string | null },
 ): Promise<void> {
   const db = env.DB;
@@ -115,11 +114,20 @@ async function processItem(
   const id = await hashId(url);
   if (await articleExists(db, id)) return;
 
+  // Only outlets tagged non-English pay for a translation call — known-
+  // English outlets (the large majority) never spend a call they don't need.
+  const titleEn = outlet.language === 'en' ? null : await translateTitle(env.AI, item.title);
+  // Best available English text, used wherever a fallback headline is
+  // needed below — never the untranslated original when a translation
+  // exists, even in a degraded/fallback path.
+  const displayTitle = titleEn ?? item.title;
+
   const now = new Date();
   const article: NewArticle = {
     id,
-    outletId,
+    outletId: outlet.id,
     title: item.title,
+    titleEn,
     url,
     publishedAt: item.publishedAt ?? now.toISOString(),
     fetchedAt: now.toISOString(),
@@ -130,21 +138,25 @@ async function processItem(
   if (!embedding) {
     // Embedding failed — can't compare against anything, so the safest
     // outcome is a standalone topic rather than dropping the article.
-    await createTopic(db, crypto.randomUUID(), crypto.randomUUID(), article, [], article.title, category);
+    await createTopic(db, crypto.randomUUID(), crypto.randomUUID(), article, [], displayTitle, outlet.category);
     return;
   }
 
-  const candidateTopics = await getCandidateTopics(db, category, now);
+  const candidateTopics = await getCandidateTopics(db, outlet.category, now);
   const topicMatch = pickTopic(embedding, candidateTopics);
 
   if (!topicMatch) {
+    // generateNarrative reads item.title/item.summary directly (not the
+    // translated version) and is instructed to always answer in English —
+    // it handles non-English source text itself, in the same call, rather
+    // than needing a separate pre-translation pass.
     const opening = await generateNarrative(env.AI, item.title, [], {
       title: item.title,
       summary: item.summary,
-      outletName,
+      outletName: outlet.name,
     });
-    const headline = opening?.text ?? article.title;
-    await createTopic(db, crypto.randomUUID(), crypto.randomUUID(), article, embedding, headline, category);
+    const headline = opening?.text ?? displayTitle;
+    await createTopic(db, crypto.randomUUID(), crypto.randomUUID(), article, embedding, headline, outlet.category);
     return;
   }
 
@@ -161,13 +173,13 @@ async function processItem(
     env.AI,
     topicMatch.title,
     entries.map((entry) => entry.headline),
-    { title: item.title, summary: item.summary, outletName },
+    { title: item.title, summary: item.summary, outletName: outlet.name },
   );
 
   if (result?.isDuplicate && entryMatch) {
     await addCorroboratingArticle(db, topicMatch.topicId, entryMatch.entryId, article);
   } else {
-    const headline = result?.text ?? article.title;
+    const headline = result?.text ?? displayTitle;
     await addThreadEntry(db, topicMatch.topicId, crypto.randomUUID(), article, embedding, headline);
   }
 }

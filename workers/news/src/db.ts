@@ -48,6 +48,8 @@ export interface NewArticle {
   id: string;
   outletId: string;
   title: string;
+  /** English translation of `title`, when the outlet isn't English and translation succeeded. `title` itself is always the real, untranslated source headline. */
+  titleEn: string | null;
   url: string;
   publishedAt: string;
   fetchedAt: string;
@@ -111,8 +113,8 @@ export async function addCorroboratingArticle(
 function insertArticleStatement(db: D1Database, article: NewArticle, entryId: string, topicId: string) {
   return db
     .prepare(
-      `INSERT INTO articles (id, outlet_id, thread_entry_id, topic_id, title, url, published_at, fetched_at, summary)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO articles (id, outlet_id, thread_entry_id, topic_id, title, title_en, url, published_at, fetched_at, summary)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       article.id,
@@ -120,6 +122,7 @@ function insertArticleStatement(db: D1Database, article: NewArticle, entryId: st
       entryId,
       topicId,
       article.title,
+      article.titleEn,
       article.url,
       article.publishedAt,
       article.fetchedAt,

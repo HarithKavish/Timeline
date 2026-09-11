@@ -103,6 +103,7 @@ Upgrading an existing database? Apply migrations in order, in addition to
 ```bash
 npx wrangler d1 execute timeline-news --remote --file=./migrations/0001_add_category.sql
 npx wrangler d1 execute timeline-news --remote --file=./migrations/0002_reset_for_embeddings.sql
+npx wrangler d1 execute timeline-news --remote --file=./migrations/0003_add_title_translation.sql
 ```
 
 0002 clears `articles`/`thread_entries`/`topics` — the switch from
@@ -222,3 +223,37 @@ silently falling back to raw headlines more often than expected (that
 fallback is silent on purpose — it never blocks ingestion — so it's worth
 occasionally checking `wrangler tail` rather than assuming quiet means
 everything succeeded).
+
+## Auto-translation
+
+Article titles from non-English outlets (`language: 'ta'` in `src/outlets.ts`
+— currently the District and City tiers' Tamil-language Google News feeds)
+are translated to English for display via `src/translate.ts`, using the same
+`llama-3.1-8b-instruct-fp8` model as narrative generation. Only non-English
+outlets pay for the call — English outlets, the large majority, never do.
+The real source title (`articles.title`) is never overwritten; the
+translation lands in a separate `title_en` column, and the frontend shows
+`titleEn ?? title` with the real original always available on hover.
+
+Thread-entry narratives don't need a separate translation step: the
+narrative-generation prompt (`src/narrative.ts`) is instructed to always
+answer in English regardless of the source article's language, since it's
+already reading the source text to write the log entry — no extra call.
+
+**Translation quality is heuristic, not a guarantee — tested and tuned, not
+assumed.** A first version, using the general instruct model with no
+constraints, mistranslated real Tamil place names in testing: "Sattur" (a
+real town this pipeline's own City/District outlets cover) came back as
+"Chittoor" (a different place in a different state) in one run, "Sivakasi"
+as "Shivaganga" (a different Tamil Nadu town) in another — plausible-looking
+but factually wrong. A dedicated translation model
+(`@cf/meta/m2m100-1.2b`) was tried as an alternative and was worse: it
+fabricated unrelated sentences rather than translating at all. The fix that
+worked — verified by rerunning the same real headlines three times each and
+checking for consistency, not just one lucky result — was giving the model
+an explicit glossary of the exact place names this pipeline's outlets are
+built to cover (`KNOWN_PLACES` in `src/translate.ts`) plus a low temperature
+(0.1). Place names have been consistent since; a domain-term imprecision
+remains (பட்டாசு, "firecracker," has come back as "matchbox" — a lower-stakes
+error than a wrong place, but not fixed). Extending `KNOWN_PLACES` is the
+first thing to try if a specific new mistranslation shows up.

@@ -40,7 +40,10 @@ export interface NewsArticle {
   id: string;
   outletId: NewsOutletId;
   outletName: string;
+  /** The real source headline, in the outlet's own language — never translated. */
   title: string;
+  /** English translation of `title`, when the outlet isn't English and translation succeeded. Display `titleEn ?? title`. */
+  titleEn: string | null;
   url: string;
   publishedAt: string;
   fetchedAt: string;

@@ -210,6 +210,14 @@ AI call falls back to something safe (a standalone topic; the raw headline) on f
 call never blocks ingestion — see `workers/news/README.md` for the full pipeline, the thresholds,
 and the cost/latency tradeoffs worth watching.
 
+**Auto-translation** — non-English article titles (currently the Tamil-language District/City
+Google News feeds) get an English translation for display, stored alongside the real original
+rather than replacing it; thread narratives are written directly in English by the same LLM call
+that generates them, no separate step needed. Translation quality was tested, not assumed — a
+first version mistranslated real place names ("Sattur" as "Chittoor," a different place in a
+different state) until constrained with an explicit glossary of the towns this pipeline actually
+covers; see `workers/news/README.md` for what that testing found and what's still imperfect.
+
 **Running it locally**
 
 ```bash

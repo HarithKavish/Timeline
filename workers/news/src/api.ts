@@ -238,7 +238,7 @@ async function getTopicDetail(db: D1Database, topicId: string, headers: HeadersI
       .all<{ id: string; occurred_at: string; headline: string }>(),
     db
       .prepare(
-        `SELECT id, outlet_id, thread_entry_id, title, url, published_at, fetched_at, summary
+        `SELECT id, outlet_id, thread_entry_id, title, title_en, url, published_at, fetched_at, summary
          FROM articles WHERE topic_id = ? ORDER BY published_at ASC`,
       )
       .bind(topicId)
@@ -247,6 +247,7 @@ async function getTopicDetail(db: D1Database, topicId: string, headers: HeadersI
         outlet_id: string;
         thread_entry_id: string;
         title: string;
+        title_en: string | null;
         url: string;
         published_at: string;
         fetched_at: string;
@@ -264,6 +265,7 @@ async function getTopicDetail(db: D1Database, topicId: string, headers: HeadersI
       outletId: row.outlet_id,
       outletName: outlet?.name ?? row.outlet_id,
       title: row.title,
+      titleEn: row.title_en,
       url: row.url,
       publishedAt: row.published_at,
       fetchedAt: row.fetched_at,

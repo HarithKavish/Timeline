@@ -45,6 +45,12 @@ CREATE TABLE IF NOT EXISTS articles (
   thread_entry_id TEXT NOT NULL REFERENCES thread_entries(id),
   topic_id TEXT NOT NULL REFERENCES topics(id),
   title TEXT NOT NULL,
+  -- English translation of `title`, for display, when the outlet's own
+  -- language isn't English (see src/translate.ts). NULL when the outlet is
+  -- already English, or when translation failed — callers fall back to
+  -- `title` either way. `title` itself is never overwritten: it's the real
+  -- source headline, unchanged.
+  title_en TEXT,
   url TEXT NOT NULL,
   published_at TEXT NOT NULL,
   fetched_at TEXT NOT NULL,
