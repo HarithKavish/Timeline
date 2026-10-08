@@ -18,12 +18,12 @@ const CATEGORY_DESCRIPTION: Record<NewsCategory, string> = {
   city: 'Rajapalayam specifically.',
 };
 
-/** District and City both depend on a Google News search feed, which is blocked for this worker the same way — see workers/news/README.md. */
+/** District and City both depend on a Google News search feed, which is intermittently blocked for this worker — see workers/news/README.md. */
 const GOOGLE_BLOCKED_CATEGORIES = new Set<NewsCategory>(['district', 'city']);
 
 function blockedNote(category: NewsCategory): string {
   const place = category === 'district' ? 'Virudhunagar district' : 'Rajapalayam';
-  return `The Google News search feed that would stand in for one is itself blocked for this worker's network range (confirmed — it succeeds from an ordinary connection). The District and City tiers can stall for hours at a stretch but do come through.`;
+  return `The only free source for ${place}-specific coverage is a Google News search feed, which is intermittently blocked for this worker's Cloudflare network range (it succeeds from an ordinary connection) — this section can stall for hours at a stretch, but the feed does come through.`;
 }
 
 const TOPICS_PER_CATEGORY = 3;
@@ -34,11 +34,12 @@ export function NewsPage() {
   const categorizedState = useQuery(() => getNewsByCategory(TOPICS_PER_CATEGORY), []);
 
   const outlets = outletsState.status === 'success' ? outletsState.data : [];
-  
-  // Compute actually-empty local categories from categorized query (only in success state)
-  const emptyLocalCategories = categorizedState.status === 'success' 
-    ? NEWS_CATEGORIES.filter(category => 
-        ['district', 'city'].includes(category) && 
+
+  // Local tiers that genuinely have zero topics right now — unknown while loading/error,
+  // so the stall notice renders only for tiers that are actually empty (see LiveNotice).
+  const emptyLocalCategories = categorizedState.status === 'success'
+    ? NEWS_CATEGORIES.filter(category =>
+        GOOGLE_BLOCKED_CATEGORIES.has(category) &&
         !(categorizedState.data[category] || []).length
       )
     : [];

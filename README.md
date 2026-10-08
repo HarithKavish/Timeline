@@ -177,16 +177,20 @@ a search box first:
   News scrape, which would be aggregator content wearing a publisher's name.
 - **National** (India) — Times of India.
 - **State** (Tamil Nadu) — Times of India (Chennai edition), The New Indian Express.
-- **District** (Virudhunagar) — can stall for hours at a stretch but does come through, same reason as City below. Searches across
+- **District** (Virudhunagar) — no dedicated publisher feed exists, so searches across
   the district's main towns by name (Virudhunagar, Rajapalayam, Sivakasi, Srivilliputhur,
-  Aruppukkottai, Sattur) rather than the district name as a phrase, since local reporting almost
-  always names the specific town. As of 2026-10-08 probes, all four local feeds ingest and city-en recovered after 7 days stale — the claim is falsified, block is intermittent.
-- **City** (Rajapalayam) — can stall for hours at a stretch but does come through. No outlet publishes a dedicated feed for a town
-  this size, so a Google News search feed (English and Tamil) is the only real free source of
-  Rajapalayam-specific coverage — but Google returns HTTP 503 specifically to this worker's
-  Cloudflare network range (confirmed: 200 from an ordinary connection, 503 from here, across
-  multiple cron cycles). As of 2026-10-08 probes, all four local feeds ingest and city-en recovered after 7 days stale — the claim is falsified, block is intermittent. Both the District and City sections say this plainly on the News
-  homepage rather than showing a misleadingly generic empty state.
+  Aruppukkottai, Sattur) via Google News instead of the district name as a phrase, since local
+  reporting almost always names the specific town. That search feed is intermittently blocked
+  for the worker's Cloudflare network range (503 from here, 200 from an ordinary connection), so
+  this tier can stall for hours at a stretch — but it does come through (all four local feeds
+  verified ingesting on 2026-10-08).
+- **City** (Rajapalayam) — same source and same intermittent block as District: no outlet
+  publishes a dedicated feed for a town this size, so a Google News search feed (English and
+  Tamil) is the only real free source of Rajapalayam-specific coverage, and Google returns HTTP
+  503 specifically to this worker's Cloudflare network range while serving 200 to an ordinary
+  connection. The tier can stall for hours at a stretch but does come through — city-en was 7
+  days stale at one 2026-10-08 probe and had recovered by the next. The News homepage only says
+  a tier is stalled when that tier is genuinely empty at the moment you load it.
 
 **The Hindu is deliberately not used**, despite being the obvious choice for National and State:
 its feeds are real and correctly formatted but return HTTP 403 to this same Cloudflare network
