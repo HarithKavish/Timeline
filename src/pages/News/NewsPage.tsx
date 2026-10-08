@@ -23,7 +23,7 @@ const GOOGLE_BLOCKED_CATEGORIES = new Set<NewsCategory>(['district', 'city']);
 
 function blockedNote(category: NewsCategory): string {
   const place = category === 'district' ? 'Virudhunagar district' : 'Rajapalayam';
-  return `Currently empty: the only free source for ${place}-specific coverage is a Google News search feed, and Google returns 503 specifically to this worker's Cloudflare network range — the identical request succeeds from an ordinary connection. This is an infrastructure block, not a timing issue; refreshing won't fix it.`;
+  return `The Google News search feed that would stand in for one is itself blocked for this worker's network range (confirmed — it succeeds from an ordinary connection). The District and City tiers can stall for hours at a stretch but do come through.`;
 }
 
 const TOPICS_PER_CATEGORY = 3;
@@ -34,6 +34,14 @@ export function NewsPage() {
   const categorizedState = useQuery(() => getNewsByCategory(TOPICS_PER_CATEGORY), []);
 
   const outlets = outletsState.status === 'success' ? outletsState.data : [];
+  
+  // Compute actually-empty local categories from categorized query (only in success state)
+  const emptyLocalCategories = categorizedState.status === 'success' 
+    ? NEWS_CATEGORIES.filter(category => 
+        ['district', 'city'].includes(category) && 
+        !(categorizedState.data[category] || []).length
+      )
+    : [];
 
   return (
     <div className="page">
@@ -54,7 +62,7 @@ export function NewsPage() {
         </p>
       </header>
 
-      <LiveNotice outlets={outlets} />
+      <LiveNotice outlets={outlets} emptyLocalCategories={emptyLocalCategories} />
 
       {categorizedState.status === 'loading' ? <LoadingState label="Loading news…" /> : null}
       {categorizedState.status === 'error' ? <NewsErrorState error={categorizedState.error} /> : null}

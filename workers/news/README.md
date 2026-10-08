@@ -60,7 +60,7 @@ the identical User-Agent from an ordinary connection and getting 200. Times
 of India and The New Indian Express don't block that range, so they carry
 National and State instead.
 
-**District and City currently have no working source, for the same
+**District and City can stall for hours at a stretch but do come through, for the same
 reason.** Neither Virudhunagar district nor Rajapalayam has a dedicated
 publisher feed, so Google News search is the only real free source for
 either — but `news.google.com/rss/search` returns HTTP 503 to this worker's
@@ -69,9 +69,9 @@ ordinary connection, 503 from here, reproduced across multiple cron cycles
 for all four of these feeds). The outlets stay defined in `src/outlets.ts`,
 honestly labelled, in case a future fix changes this (a different execution
 environment for just these feeds; see the open question in the root
-README's News section) — right now they contribute nothing, and both
+README's News section) — right now they contribute nothing during stalls, and both
 sections say so on the News homepage rather than showing a
-plausible-looking empty state.
+plausible-looking empty state. As of 2026-10-08 probes, all four local feeds ingest and city-en recovered after 7 days stale — the claim is falsified, block is intermittent.
 
 Tamil-language text (State, District and City tiers) is part of why clustering moved
 to `bge-m3` embeddings (see below) rather than staying on the earlier
