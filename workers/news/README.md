@@ -127,11 +127,12 @@ account this worker is already deployed to.
 
 ## Deploy
 
-```bash
-npm run deploy
-```
+Merging a change under `workers/news/` to main deploys it, through
+`.github/workflows/deploy-news-worker.yml`; pull requests get a dry-run build. Don't deploy by
+hand: what is live should always be a commit on main. Apply any new D1 migration before merging
+code that depends on it, because the workflow's token cannot change the database.
 
-This registers the Cron Trigger (`*/5 * * * *`, in `wrangler.toml`) and the
+The deploy registers the Cron Trigger (`*/5 * * * *`, in `wrangler.toml`) and the
 `fetch` handler on your `*.workers.dev` subdomain. Once the worker has a
 stable name, uncomment the `[[routes]]` block in `wrangler.toml` and point
 `news-api.timeline.harithkavish.com` at it via a CNAME to
