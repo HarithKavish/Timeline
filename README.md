@@ -233,9 +233,9 @@ cp .env.example .env                        # VITE_NEWS_API_BASE defaults to :87
 npm run dev                                 # the News tab now shows live data
 ```
 
-Nothing under `workers/news` ships to GitHub Pages — it deploys separately (`npm run deploy`
-inside that directory), to Cloudflare, on its own cron. See `workers/news/README.md` for one-time
-setup (`wrangler login`, `wrangler d1 create`) and deploy steps.
+Nothing under `workers/news` ships to GitHub Pages — it deploys separately, to Cloudflare, on its
+own cron, through `.github/workflows/deploy-news-worker.yml` whenever it changes on main. See
+`workers/news/README.md` for one-time setup (`wrangler login`, `wrangler d1 create`).
 
 ---
 
