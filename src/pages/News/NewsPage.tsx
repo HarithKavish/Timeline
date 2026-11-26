@@ -18,12 +18,12 @@ const CATEGORY_DESCRIPTION: Record<NewsCategory, string> = {
   city: 'Rajapalayam specifically.',
 };
 
-/** District and City both depend on a Google News search feed, which is blocked for this worker the same way — see workers/news/README.md. */
+/** District and City both depend on a Google News search feed, which is intermittently blocked for this worker — see workers/news/README.md. */
 const GOOGLE_BLOCKED_CATEGORIES = new Set<NewsCategory>(['district', 'city']);
 
 function blockedNote(category: NewsCategory): string {
   const place = category === 'district' ? 'Virudhunagar district' : 'Rajapalayam';
-  return `Currently empty: the only free source for ${place}-specific coverage is a Google News search feed, and Google returns 503 specifically to this worker's Cloudflare network range — the identical request succeeds from an ordinary connection. This is an infrastructure block, not a timing issue; refreshing won't fix it.`;
+  return `The only free source for ${place}-specific coverage is a Google News search feed, which is intermittently blocked for this worker's Cloudflare network range (it succeeds from an ordinary connection) — this section can stall for hours at a stretch, but the feed does come through.`;
 }
 
 const TOPICS_PER_CATEGORY = 3;
@@ -34,6 +34,15 @@ export function NewsPage() {
   const categorizedState = useQuery(() => getNewsByCategory(TOPICS_PER_CATEGORY), []);
 
   const outlets = outletsState.status === 'success' ? outletsState.data : [];
+
+  // Local tiers that genuinely have zero topics right now — unknown while loading/error,
+  // so the stall notice renders only for tiers that are actually empty (see LiveNotice).
+  const emptyLocalCategories = categorizedState.status === 'success'
+    ? NEWS_CATEGORIES.filter(category =>
+        GOOGLE_BLOCKED_CATEGORIES.has(category) &&
+        !(categorizedState.data[category] || []).length
+      )
+    : [];
 
   return (
     <div className="page">
@@ -54,7 +63,7 @@ export function NewsPage() {
         </p>
       </header>
 
-      <LiveNotice outlets={outlets} />
+      <LiveNotice outlets={outlets} emptyLocalCategories={emptyLocalCategories} />
 
       {categorizedState.status === 'loading' ? <LoadingState label="Loading news…" /> : null}
       {categorizedState.status === 'error' ? <NewsErrorState error={categorizedState.error} /> : null}

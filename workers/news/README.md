@@ -60,18 +60,20 @@ the identical User-Agent from an ordinary connection and getting 200. Times
 of India and The New Indian Express don't block that range, so they carry
 National and State instead.
 
-**District and City currently have no working source, for the same
-reason.** Neither Virudhunagar district nor Rajapalayam has a dedicated
-publisher feed, so Google News search is the only real free source for
-either — but `news.google.com/rss/search` returns HTTP 503 to this worker's
-Cloudflare network range too (same confirmation as The Hindu: 200 from an
-ordinary connection, 503 from here, reproduced across multiple cron cycles
-for all four of these feeds). The outlets stay defined in `src/outlets.ts`,
-honestly labelled, in case a future fix changes this (a different execution
-environment for just these feeds; see the open question in the root
-README's News section) — right now they contribute nothing, and both
-sections say so on the News homepage rather than showing a
-plausible-looking empty state.
+**District and City depend on the same Google News search feed, which is
+intermittently blocked from this worker's network.** Neither Virudhunagar
+district nor Rajapalayam has a dedicated publisher feed, so Google News search
+is the only real free source for either — and `news.google.com/rss/search`
+returns HTTP 503 to this worker's Cloudflare network range too (same
+confirmation as The Hindu: 200 from an ordinary connection, 503 from here). In
+practice the block is intermittent, not permanent: both tiers stall for hours
+at a stretch and then come through (on 2026-10-08, all four local feeds were
+ingesting, and city-en — seven days stale at one probe — had recovered by the
+next). The outlets stay defined in `src/outlets.ts`, honestly labelled, in case
+a future fix changes this (a different execution environment for just these
+feeds; see the open question in the root README's News section). During a stall
+the News homepage shows a stall notice for exactly the tiers that are empty at
+that moment, rather than a plausible-looking empty state.
 
 Tamil-language text (State, District and City tiers) is part of why clustering moved
 to `bge-m3` embeddings (see below) rather than staying on the earlier
@@ -125,11 +127,12 @@ account this worker is already deployed to.
 
 ## Deploy
 
-```bash
-npm run deploy
-```
+Merging a change under `workers/news/` to main deploys it, through
+`.github/workflows/deploy-news-worker.yml`; pull requests get a dry-run build. Don't deploy by
+hand: what is live should always be a commit on main. Apply any new D1 migration before merging
+code that depends on it, because the workflow's token cannot change the database.
 
-This registers the Cron Trigger (`*/5 * * * *`, in `wrangler.toml`) and the
+The deploy registers the Cron Trigger (`*/5 * * * *`, in `wrangler.toml`) and the
 `fetch` handler on your `*.workers.dev` subdomain. Once the worker has a
 stable name, uncomment the `[[routes]]` block in `wrangler.toml` and point
 `news-api.timeline.harithkavish.com` at it via a CNAME to

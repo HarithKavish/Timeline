@@ -1,9 +1,10 @@
-import type { NewsOutlet } from '../../types/news';
+import type { NewsOutlet, NewsCategory } from '../../types/news';
+import { NEWS_CATEGORY_LABEL } from '../../types/news';
 import './news.css';
 
 /** The News domain's counterpart to `DemoNotice` — this domain is the one real pipeline in the build. */
-export function LiveNotice({ outlets }: { outlets: NewsOutlet[] }) {
-  const blockedOutlets = outlets.filter((outlet) => outlet.category === 'district' || outlet.category === 'city');
+export function LiveNotice({ outlets, emptyLocalCategories }: { outlets: NewsOutlet[]; emptyLocalCategories?: NewsCategory[] }) {
+  const hasEmpty = emptyLocalCategories && emptyLocalCategories.length > 0;
   return (
     <aside className="live-notice" aria-label="Data status">
       <span className="live-notice__tag mono">LIVE DATA</span>
@@ -13,12 +14,11 @@ export function LiveNotice({ outlets }: { outlets: NewsOutlet[] }) {
         {outlets.length || 'several'} outlets' own feeds, most articles linking straight to the
         real source. Topics and threads are grouped automatically by a similarity heuristic, not
         edited by hand, so occasional mis-groupings are expected.
-        {blockedOutlets.length > 0 ? (
+        {hasEmpty ? (
           <>
-            {' '}The District and City tiers are currently empty: neither has a dedicated
-            publisher feed, and the Google News search feed that would stand in for one is
-            itself blocked for this worker's network range (confirmed — it succeeds from an
-            ordinary connection). Not a timing issue; see the note in those sections below.
+            {' '}{emptyLocalCategories.length === 1
+              ? `The ${NEWS_CATEGORY_LABEL[emptyLocalCategories[0]]} tier can stall for hours at a stretch but does come through; the Google News search feed that would stand in for one is itself blocked for this worker's network range (confirmed — it succeeds from an ordinary connection). See the note in that section below.`
+              : `The District and City tiers can stall for hours at a stretch but do come through; the Google News search feed that would stand in for one is itself blocked for this worker's network range (confirmed — it succeeds from an ordinary connection). See the note in those sections below.`}
           </>
         ) : null}{' '}
         See <code className="mono">workers/news/README.md</code> for how it works.
